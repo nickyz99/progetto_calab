@@ -2,8 +2,9 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gestione Vendite</title>
+  <!-- SheetJS -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
   <style>
     body { font-family: Arial, sans-serif; margin: 2rem; }
@@ -24,272 +25,267 @@
 </head>
 <body>
 
-  <nav>
-    <button id="btn-products" class="active">Prodotti</button>
-    <button id="btn-template">Genera Template</button>
-  </nav>
+<nav>
+  <button id="btn-products" class="active">Prodotti</button>
+  <button id="btn-template">Genera Template</button>
+</nav>
 
-  <section id="view-products" class="active">
-    <h2>Gestione Prodotti</h2>
-    <form id="form-product" class="fieldset-container">
-      <input type="hidden" id="product-id">
-      <div>
-        <label>Nome Prodotto:<br><input id="input-name" required></label>
-      </div>
-      <div>
-        <label>Prezzo (€):<br><input id="input-price" type="number" step="0.01" required></label>
-      </div>
-      <div style="margin-top:0.5rem;">
-        <button type="submit" class="btn">Salva</button>
-        <button type="button" id="btn-reset" class="btn">Annulla</button>
-      </div>
-    </form>
-    <table>
-      <thead>
-        <tr><th>ID</th><th>Nome</th><th>Prezzo (€)</th><th>Modifica</th><th>Elimina</th></tr>
-      </thead>
-      <tbody id="products-tbody"></tbody>
-    </table>
-  </section>
-
-  <section id="view-template">
-    <h2>Genera Template</h2>
-    <div class="fieldset-container">
-      <div>
-        <label>Cliente:<br><input id="input-cliente" required></label>
-      </div>
-      <div id="single-date-section" class="fieldset-container">
-        <legend>Data Unica</legend>
-        <div>
-          <label>Data:<br><input id="date1" type="date"></label>
-        </div>
-        <table>
-          <thead><tr><th>Colli</th><th>Prodotto</th><th>KG</th></tr></thead>
-          <tbody id="single-tbody"></tbody>
-        </table>
-      </div>
-      <div>
-        <label><input id="multi-date-checkbox" type="checkbox"> Abilita date multiple</label>
-      </div>
-      <div id="multi-container"></div>
-      <div style="margin-top:1rem;">
-        <button id="add-date" class="btn">Aggiungi Data</button>
-        <button id="btn-generate" class="btn">Preview & Download</button>
-      </div>
+<section id="view-products" class="active">
+  <h2>Gestione Prodotti</h2>
+  <form id="form-product" class="fieldset-container">
+    <input type="hidden" id="product-id">
+    <div>
+      <label>Nome Prodotto:<br><input id="input-name" required></label>
     </div>
-    <div id="preview-container"></div>
-  </section>
+    <div>
+      <label>Prezzo (€):<br><input id="input-price" type="number" step="0.01" required></label>
+    </div>
+    <div style="margin-top: 0.5rem;">
+      <button type="submit" class="btn">Salva</button>
+      <button type="button" id="btn-reset" class="btn">Annulla</button>
+    </div>
+  </form>
+  <table>
+    <thead>
+      <tr><th>ID</th><th>Nome</th><th>Prezzo (€)</th><th>Modifica</th><th>Elimina</th></tr>
+    </thead>
+    <tbody id="products-tbody"></tbody>
+  </table>
+</section>
+
+<section id="view-template">
+  <h2>Genera Template</h2>
+  <div class="fieldset-container">
+    <div>
+      <label>Cliente:<br><input id="input-cliente" required></label>
+    </div>
+    <div id="single-date-section" class="fieldset-container">
+      <legend>Data Unica</legend>
+      <div>
+        <label>Data:<br><input id="date1" type="date"></label>
+      </div>
+      <table>
+        <thead><tr><th>Colli</th><th>Prodotto</th><th>KG</th></tr></thead>
+        <tbody id="single-tbody"></tbody>
+      </table>
+    </div>
+    <div>
+      <label><input id="multi-date-checkbox" type="checkbox"> Abilita date multiple</label>
+    </div>
+    <div id="multi-container"></div>
+    <div style="margin-top: 1rem;">
+      <button id="btn-preview" class="btn">Preview</button>
+      <button id="btn-download" class="btn">Download</button>
+    </div>
+  </div>
+  <div id="preview-container"></div>
+</section>
 
 <script>
-(() => {
+(function() {
   const STORAGE_KEY = 'products';
-  function loadProducts(){ return JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]'); }
-  function saveProducts(a){ localStorage.setItem(STORAGE_KEY, JSON.stringify(a)); }
+  const loadProducts = () => JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+  const saveProducts = arr => localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
 
-  // NAV
-  const btnP = document.getElementById('btn-products'),
-        btnT = document.getElementById('btn-template'),
-        vP   = document.getElementById('view-products'),
-        vT   = document.getElementById('view-template');
-  btnP.onclick = ()=>toggle('products');
-  btnT.onclick = ()=>toggle('template');
-  function toggle(v){
-    btnP.classList.toggle('active', v==='products');
-    btnT.classList.toggle('active', v==='template');
-    vP.classList.toggle('active', v==='products');
-    vT.classList.toggle('active', v==='template');
-    if(v==='template') renderSingle(); else renderProducts();
+  // Navigation
+  const btnProd = document.getElementById('btn-products');
+  const btnTemp = document.getElementById('btn-template');
+  const viewProd = document.getElementById('view-products');
+  const viewTemp = document.getElementById('view-template');
+  btnProd.addEventListener('click', () => switchView('products'));
+  btnTemp.addEventListener('click', () => switchView('template'));
+  function switchView(v) {
+    btnProd.classList.toggle('active', v === 'products');
+    btnTemp.classList.toggle('active', v === 'template');
+    viewProd.classList.toggle('active', v === 'products');
+    viewTemp.classList.toggle('active', v === 'template');
+    if (v === 'template') initTemplate(); else renderProducts();
   }
 
-  // CRUD Prodotti
+  // Products CRUD
   let editId = null;
   const formProd = document.getElementById('form-product');
-  formProd.onsubmit = e=>{
+  formProd.addEventListener('submit', e => {
     e.preventDefault();
-    const n = document.getElementById('input-name').value.trim(),
-          p = parseFloat(document.getElementById('input-price').value);
-    if(!n||isNaN(p)) return;
-    let arr = loadProducts();
-    if(editId!==null){
-      arr = arr.map(x=> x.id===editId ? {id:editId,name:n,price:p} : x);
+    const name = document.getElementById('input-name').value.trim();
+    const price = parseFloat(document.getElementById('input-price').value);
+    if (!name || isNaN(price)) return;
+    const products = loadProducts();
+    if (editId !== null) {
+      const idx = products.findIndex(p => p.id === editId);
+      products[idx] = { id: editId, name, price };
       editId = null;
     } else {
-      const id = arr.length?arr[arr.length-1].id+1:1;
-      arr.push({id,name:n,price:p});
+      const id = products.length ? products[products.length - 1].id + 1 : 1;
+      products.push({ id, name, price });
     }
-    saveProducts(arr);
+    saveProducts(products);
     renderProducts();
     formProd.reset();
-  };
-  document.getElementById('btn-reset').onclick=()=>{ formProd.reset(); editId=null; };
-
-  function renderProducts(){
-    const tb = document.getElementById('products-tbody');
-    tb.innerHTML='';
-    loadProducts().forEach(x=>{
-      const tr=document.createElement('tr');
-      tr.innerHTML=`
-        <td>${x.id}</td><td>${x.name}</td><td>€ ${x.price.toFixed(2)}</td>
-        <td><button class="btn edit" data-id="${x.id}">✏️</button></td>
-        <td><button class="btn delete" data-id="${x.id}">🗑️</button></td>`;
-      tb.appendChild(tr);
+  });
+  document.getElementById('btn-reset').addEventListener('click', () => {
+    formProd.reset(); editId = null;
+  });
+  function renderProducts() {
+    const tbody = document.getElementById('products-tbody');
+    tbody.innerHTML = '';
+    loadProducts().forEach(p => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${p.id}</td>
+        <td>${p.name}</td>
+        <td>€ ${p.price.toFixed(2)}</td>
+        <td><button class="btn edit" data-id="${p.id}">✏️</button></td>
+        <td><button class="btn delete" data-id="${p.id}">🗑️</button></td>`;
+      tbody.appendChild(tr);
     });
   }
-  document.getElementById('products-tbody').onclick = e=>{
-    const t=e.target, id=+t.dataset.id;
-    if(t.classList.contains('delete')){
-      if(confirm('Elimina?')){
-        saveProducts(loadProducts().filter(x=>x.id!==id));
+  document.getElementById('products-tbody').addEventListener('click', e => {
+    const btn = e.target;
+    const id = parseInt(btn.dataset.id, 10);
+    if (btn.classList.contains('delete')) {
+      if (confirm('Elimina prodotto?')) {
+        saveProducts(loadProducts().filter(p => p.id !== id));
         renderProducts();
       }
     }
-    if(t.classList.contains('edit')){
-      const p = loadProducts().find(x=>x.id===id);
-      editId=id;
-      document.getElementById('input-name').value=p.name;
-      document.getElementById('input-price').value=p.price;
+    if (btn.classList.contains('edit')) {
+      const prod = loadProducts().find(p => p.id === id);
+      editId = id;
+      document.getElementById('input-name').value = prod.name;
+      document.getElementById('input-price').value = prod.price;
     }
-  };
+  });
 
   // Template
-  const singleTbody = document.getElementById('single-tbody'),
-        multiCb     = document.getElementById('multi-date-checkbox'),
-        multiC      = document.getElementById('multi-container'),
-        addBtn      = document.getElementById('add-date'),
-        genBtn      = document.getElementById('btn-generate');
-  let secCount=0;
-  function renderSingle(){
-    singleTbody.innerHTML='';
-    loadProducts().forEach((p,i)=>{
-      const tr=document.createElement('tr');
-      tr.innerHTML=`
-        <td><input data-i="${i}" data-type="colli" type="number" min="0" value="0"></td>
+  let sectionsData = [];
+  const singleTbody = document.getElementById('single-tbody');
+  const multiCb = document.getElementById('multi-date-checkbox');
+  const multiContainer = document.getElementById('multi-container');
+  function initTemplate() {
+    renderSingle();
+    multiCb.checked = false;
+    multiContainer.innerHTML = '';
+  }
+  function renderSingle() {
+    singleTbody.innerHTML = '';
+    loadProducts().forEach((p, i) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><input data-i="${i}" data-col="colli" type="number" min="0" value="0"></td>
         <td>${p.name}</td>
-        <td><input data-i="${i}" data-type="kg" type="number" step="0.01" min="0" value="0"></td>`;
+        <td><input data-i="${i}" data-col="kg" type="number" step="0.01" min="0" value="0"></td>`;
       singleTbody.appendChild(tr);
     });
   }
-  function addSec(){
-    const div=document.createElement('div');
-    div.className='date-section';
-    div.innerHTML=`
+  let secCount = 0;
+  function addMultiSection() {
+    const div = document.createElement('div'); div.className = 'date-section';
+    div.innerHTML = `
       <h4>Data ${++secCount}</h4>
-      <label>Data:<br><input type="date"></label>
-      <table>
-        <thead><tr><th>Colli</th><th>Prodotto</th><th>KG</th></tr></thead>
-        <tbody></tbody>
-      </table>
-      <button class="btn rm">Rimuovi</button>`;
-    const bd=div.querySelector('tbody');
-    loadProducts().forEach((p,i)=>{
-      const tr=document.createElement('tr');
-      tr.innerHTML=`
-        <td><input data-i="${i}" data-type="colli" type="number" min="0" value="0"></td>
+      <label>Data:<input type="date"></label>
+      <table><thead><tr><th>Colli</th><th>Prodotto</th><th>KG</th></tr></thead><tbody></tbody></table>
+      <button class="btn remove">Rimuovi</button>`;
+    const tbody = div.querySelector('tbody');
+    loadProducts().forEach((p, i) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><input data-i="${i}" data-col="colli" type="number" min="0" value="0"></td>
         <td>${p.name}</td>
-        <td><input data-i="${i}" data-type="kg" type="number" step="0.01" min="0" value="0"></td>`;
-      bd.appendChild(tr);
+        <td><input data-i="${i}" data-col="kg" type="number" step="0.01" min="0" value="0"></td>`;
+      tbody.appendChild(tr);
     });
-    div.querySelector('.rm').onclick=()=>div.remove();
-    multiC.appendChild(div);
+    div.querySelector('.remove').addEventListener('click', () => div.remove());
+    multiContainer.appendChild(div);
   }
-  multiCb.onchange=()=>{
-    multiC.innerHTML=''; secCount=0;
-    if(multiCb.checked) addSec();
-  };
-  addBtn.onclick=e=>{ e.preventDefault(); if(multiCb.checked) addSec(); };
+  multiCb.addEventListener('change', () => {
+    multiContainer.innerHTML = '';
+    secCount = 0;
+    if (multiCb.checked) addMultiSection();
+  });
 
   // Preview & Download
-  genBtn.onclick=()=>{
-    const cliente = document.getElementById('input-cliente').value.trim()||'Cliente';
-    const prods = loadProducts();
-    const sections=[];
-    function gather(sec,date){
-      const rows=sec.querySelectorAll('tbody tr');
-      const ents=[];
-      rows.forEach(r=>{
-        const i=+r.querySelector('[data-i]').dataset.i;
-        const c=parseFloat(r.querySelector('[data-type="colli"]').value)||0;
-        const kg=parseFloat(r.querySelector('[data-type="kg"]').value)||0;
-        if(c||kg) ents.push({c,name:prods[i].name,kg,price:prods[i].price,amount:kg*prods[i].price});
+  document.getElementById('btn-preview').addEventListener('click', e => { e.preventDefault(); preview(); });
+  document.getElementById('btn-download').addEventListener('click', e => { e.preventDefault(); download(); });
+
+  function preview() {
+    const cliente = document.getElementById('input-cliente').value.trim() || 'Cliente';
+    sectionsData = [];
+    function gather(sectionEl, date) {
+      const rows = sectionEl.querySelectorAll('tbody tr');
+      const entries = [];
+      rows.forEach(r => {
+        const idx = parseInt(r.querySelector('[data-i]').dataset.i, 10);
+        const colli = parseFloat(r.querySelector('[data-col="colli"]').value) || 0;
+        const kg = parseFloat(r.querySelector('[data-col="kg"]').value) || 0;
+        if (colli || kg) entries.push({ colli, name: loadProducts()[idx].name, kg, price: loadProducts()[idx].price, amount: kg * loadProducts()[idx].price });
       });
-      if(ents.length) sections.push({date,entries:ents});
+      if (entries.length) sectionsData.push({ date, entries });
     }
-    if(multiCb.checked){
-      document.querySelectorAll('#multi-container .date-section').forEach(div=>gather(div,div.querySelector('input[type=date]').value));
-    } else gather(document.getElementById('single-date-section'),document.getElementById('date1').value);
+    if (multiCb.checked) {
+      document.querySelectorAll('#multi-container .date-section').forEach(div => {
+        const date = div.querySelector('input[type=date]').value;
+        gather(div, date);
+      });
+    } else {
+      gather(document.getElementById('single-date-section'), document.getElementById('date1').value);
+    }
 
-    // Build AOA
-    const aoa=[];
-    aoa.push([`NOTA DI VENDITA | ${cliente}`]);
-    aoa.push(['C','PRODOTTO','KG','PREZZO','IMPORTO']);
-    let first=true;
-    sections.forEach(s=>{
-      if(!first) aoa.push([]);
-      first=false;
-      aoa.push([`Data: ${s.date}`]);
-      s.entries.forEach(e=>aoa.push([e.c,e.name,e.kg,e.price,e.amount]));
+    const container = document.getElementById('preview-container');
+    container.innerHTML = '';
+    const tbl = document.createElement('table');
+    let tr = tbl.insertRow();
+    ['','', 'C','PRODOTTO','KG','PREZZO','IMPORTO'].forEach(h => { let c = tr.insertCell(); c.textContent = h; });
+    sectionsData.forEach(sec => {
+      tr = tbl.insertRow(); let c = tr.insertCell(); c.colSpan = 7; c.textContent = 'Data: ' + sec.date;
+      sec.entries.forEach(e => {
+        tr = tbl.insertRow();
+        ['', '', e.colli, e.name, e.kg, e.price, e.amount].forEach(v => { let c = tr.insertCell(); c.textContent = v; });
+      });
     });
-    const dataRows = aoa.filter(r=>r.length===5).length;
-    for(let i=dataRows;i<22;i++) aoa.push([0,'',0,0,0]);
-    const total=sections.reduce((sum,s)=>sum+s.entries.reduce((s2,e)=>s2+e.amount,0),0);
-    aoa.push(['TOTALE','','','',total]);
+    // fill to 22 rows
+    const dataRows = tbl.rows.length;
+    for (let i = dataRows; i < 22; i++) { tr = tbl.insertRow(); for (let j = 0; j < 7; j++) tr.insertCell().textContent = j < 2 ? '' : 0; }
+    // total
+    tr = tbl.insertRow(); let cspan = tr.insertCell(); cspan.colSpan = 6; tr.insertCell().textContent = sectionsData.reduce((sum, s) => sum + s.entries.reduce((ss, e) => ss + e.amount, 0), 0);
 
-    const wb=XLSX.utils.book_new();
-    const ws=XLSX.utils.aoa_to_sheet(aoa);
-    ws['!merges']=[{s:{r:0,c:0},e:{r:0,c:4}}];
-    ws['!cols']=[{wpx:50},{wpx:200},{wpx:60},{wpx:120},{wpx:140}];
-    XLSX.utils.book_append_sheet(wb,ws,'Vendite');
-
-    // Preview with sheet_to_html
-    const html = XLSX.utils.sheet_to_html(ws);
-    const div=document.createElement('div');
-    div.innerHTML = html;
-    const tbl=div.querySelector('table');
-    tbl.id='preview';
-    // rendi editabili
-    Array.from(tbl.rows).forEach((tr,i)=>{
-      if(i>1 && i<aoa.length-1){
-        const cells=tr.children;
-        if(cells.length>=5){
-          [2,3,4].forEach(idx=>{
-            cells[idx].setAttribute('contenteditable','true');
-            cells[idx].classList.add('editable-cell');
-          });
-        }
+    // make editable
+    Array.from(tbl.rows).forEach((r,i) => {
+      if (i > 0 && i < tbl.rows.length - 1) {
+        [4,5,6].forEach(ci => { let cell = r.cells[ci]; cell.contentEditable = 'true'; cell.classList.add('editable-cell'); });
       }
     });
-    const pc=document.getElementById('preview-container');
-    pc.innerHTML=''; pc.appendChild(div);
+    container.appendChild(tbl);
+  }
 
-    // recalc funcs
-    const clean=v=>parseFloat(v.replace(/[^0-9,.-]/g,'').replace(',','.'))||0;
-    const fmt=v=>v.toLocaleString('it-IT',{style:'currency',currency:'EUR'});
-    function recalcRow(tr){
-      const [,,kgC,prC,amC]=tr.children;
-      const kg=clean(kgC.textContent), pr=clean(prC.textContent), am=kg*pr;
-      kgC.textContent=kg.toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2});
-      prC.textContent=fmt(pr);
-      amC.textContent=fmt(am);
-    }
-    function recalcAll(){
-      let sum=0; const rows=tbl.rows;
-      for(let i=2;i<rows.length-1;i++){
-        const tr=rows[i]; if(tr.children.length<5) continue;
-        recalcRow(tr);
-        sum+=clean(tr.children[4].textContent);
+  function download() {
+    const tbl = document.querySelector('#preview-container table');
+    if (!tbl) return alert('Prima genera la Preview');
+    const aoa = [];
+    for (let r = 0; r < tbl.rows.length; r++) {
+      const row = tbl.rows[r];
+      const arr = [];
+      for (let c = 0; c < row.cells.length; c++) {
+        let txt = row.cells[c].textContent;
+        if (r > 0 && r < tbl.rows.length - 1 && c >= 2) {
+          const num = parseFloat(txt.replace(/[^0-9,.-]/g, '').replace(',', '.'));
+          arr.push(isNaN(num) ? 0 : num);
+        } else arr.push(txt);
       }
-      rows[rows.length-1].children[4].textContent=fmt(sum);
+      aoa.push(arr);
     }
-    tbl.addEventListener('input',()=>recalcAll());
-    recalcAll();
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    ws['!merges'] = [{s:{r:0,c:2},e:{r:0,c:6}}];
+    ws['!cols'] = [{wpx:20},{wpx:20},{wpx:50},{wpx:200},{wpx:60},{wpx:120},{wpx:140}];
+    XLSX.utils.book_append_sheet(wb, ws, 'Vendite');
+    XLSX.writeFile(wb, (document.getElementById('input-cliente').value.trim() || 'Cliente') + '.xlsx');
+  }
 
-    // download
-    XLSX.writeFile(wb,`${cliente}.xlsx`);
-  };
-
-  // init
+  // Initialize
   renderProducts();
-  renderSingle();
+  // on load, ensure default view
+  switchView('products');
 })();
 </script>
 
