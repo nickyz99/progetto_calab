@@ -547,80 +547,104 @@ function downloadExcel() {
 
     // Creiamo un foglio vuoto
     const ws = XLSX.utils.aoa_to_sheet([]);
-    // Inizializziamo i merges per header e righe data
     ws['!merges'] = [];
-
     const rows = table.querySelectorAll('tr');
-    const borderStyle = { style: 'double', color: { rgb: 'FF000000' } };
 
+    const CELL_BORDER = { style: 'double', color: { rgb: 'FF000000' } };
+    const headerRowIndex = [];
+    const dateRowIndex = [];
+
+    // Populate sheet
     rows.forEach((row, rowIndex) => {
         const cells = row.querySelectorAll('td, th');
-        let rowData = ['', '']; // Colonne A e B vuote
+        let rowData = ['', ''];
 
-        let isHeaderOrDate = false;
-
-        // Caso 1: Riga principale o data (una cella con colspan="5")
-        if (cells.length === 1 && cells[0].getAttribute('colspan') === '5') {
+        // Data or main header row (colspan=5)
+        if (cells.length === 1 && cells[0].colSpan === 5) {
             const text = cells[0].textContent.trim();
             rowData.push(text, '', '', '', '');
-            isHeaderOrDate = true;
+            dateRowIndex.push(rowIndex);
         }
-        // Caso 2: Intestazione tabella principale
+        // Table header row
         else if (cells.length === 5 && cells[4].textContent.trim() === 'IMPORTO') {
             rowData.push('C', 'PRODOTTO', 'KG', 'PREZZO', 'IMPORTO');
-            isHeaderOrDate = true;
+            headerRowIndex.push(rowIndex);
         }
-        // Caso 3: Riga dati prodotto
+        // Product row
         else if (cells.length === 5) {
-            const colli = cells[0].textContent.trim();
-            const productName = cells[1].textContent.trim();
-            const kg = cells[2].textContent.trim().replace('.', ',');
-            const price = cells[3].textContent.trim().replace('€', '').replace('.', ',');
-            const amount = cells[4].textContent.trim().replace('€', '').replace('.', ',');
-            rowData.push(colli, productName, kg, `€${price}`, `€${amount}`);
+            const [colli, prod, kgRaw, priceRaw, amtRaw] = Array.from(cells).map(td => td.textContent.trim());
+            const kg = kgRaw.replace('.', ',');
+            const price = priceRaw.replace(/[€.]/g, match => match === '€' ? '' : ',');
+            const amt = amtRaw.replace(/[€.]/g, match => match === '€' ? '' : ',');
+            rowData.push(colli, prod, kg, `€${price}`, `€${amt}`);
         }
-        // Caso 4: Riga importo zero
+        // Empty amount row
         else if (cells.length === 2 && cells[1].classList.contains('empty-amount-cell')) {
-            const amountValue = cells[1].textContent.trim().replace('€', '').replace('.', ',');
-            rowData.push('', '', '', '', `€${amountValue}`);
+            const amtRaw = cells[1].textContent.trim();
+            const amt = amtRaw.replace(/[€.]/g, match => match === '€' ? '' : ',');
+            rowData.push('', '', '', '', `€${amt}`);
         }
-        // Caso 5: Riga totale
+        // Total row
         else if (row.querySelector('#totalAmount')) {
-            const totalValue = row.querySelector('#totalAmount').textContent.trim().replace('€', '').replace('.', ',');
-            rowData.push('', '', '', 'TOTALE', `€${totalValue}`);
+            const totalRaw = row.querySelector('#totalAmount').textContent.trim();
+            const total = totalRaw.replace(/[€.]/g, match => match === '€' ? '' : ',');
+            rowData.push('', '', '', 'TOTALE', `€${total}`);
         }
 
-        // Aggiungiamo i dati al foglio
         XLSX.utils.sheet_add_aoa(ws, [rowData], { origin: `A${rowIndex + 1}` });
+    });
 
-        // Se è header o data, mergiamo le celle da C a G e applichiamo stile centrale e grassetto
-        if (isHeaderOrDate) {
-            ws['!merges'].push({ s: { r: rowIndex, c: 2 }, e: { r: rowIndex, c: 6 } });
-            for (let c = 2; c <= 6; c++) {
-                const addr = XLSX.utils.encode_cell({ r: rowIndex, c: c });
+    // Set column range
+    const range = XLSX.utils.decode_range(ws['!ref']);
+    ws['!ref'] = XLSX.utils.encode_range({ s: range.s, e: { r: range.e.r, c: 6 } });
+
+    // Auto-adjust column widths
+    const colWidths = [];
+    for (let c = 0; c <= 6; c++) {
+        let maxLen = 0;
+        for (let r = 0; r <= range.e.r; r++) {
+            const addr = XLSX.utils.encode_cell({ r, c });
+            const cell = ws[addr];
+            if (cell && cell.v != null) {
+                maxLen = Math.max(maxLen, cell.v.toString().length);
+            }
+        }
+        colWidths[c] = { wch: maxLen + 2 };
+    }
+    ws['!cols'] = colWidths;
+
+    // Apply styles
+    for (let r = 0; r <= range.e.r; r++) {
+        for (let c = 2; c <= 6; c++) {
+            const addr = XLSX.utils.encode_cell({ r, c });
+            if (!ws[addr]) continue;
+            // Header row
+            if (headerRowIndex.includes(r)) {
                 ws[addr].s = {
-                    border: { top: borderStyle, bottom: borderStyle, left: borderStyle, right: borderStyle },
                     font: { bold: true },
-                    alignment: { horizontal: 'center' }
+                    alignment: { horizontal: 'center' },
+                    border: { top: CELL_BORDER, bottom: CELL_BORDER, left: CELL_BORDER, right: CELL_BORDER }
+                };
+            }
+            // Date/main header row (merge C-G)
+            else if (dateRowIndex.includes(r)) {
+                ws['!merges'].push({ s: { r, c: 2 }, e: { r, c: 6 } });
+                ws[addr].s = {
+                    font: { bold: true },
+                    alignment: { horizontal: 'center' },
+                    border: { top: CELL_BORDER, bottom: CELL_BORDER, left: CELL_BORDER, right: CELL_BORDER }
+                };
+            }
+            // Other cells
+            else {
+                ws[addr].s = {
+                    border: { top: CELL_BORDER, bottom: CELL_BORDER, left: CELL_BORDER, right: CELL_BORDER }
                 };
             }
         }
-    });
-
-    // Impostiamo l'intervallo fino alla colonna G
-    const range = XLSX.utils.decode_range(ws['!ref']);
-    ws['!ref'] = XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: range.e.r, c: 6 } });
-
-    // Stili di bordo per le altre celle di C-G
-    for (let r = range.s.r; r <= range.e.r; r++) {
-        for (let c = 2; c <= 6; c++) {
-            const addr = XLSX.utils.encode_cell({ r: r, c: c });
-            if (!ws[addr] || ws[addr].s) continue; // saltiamo quelle già stilizzate
-            ws[addr].s = { border: { top: borderStyle, bottom: borderStyle, left: borderStyle, right: borderStyle } };
-        }
     }
 
-    // Creiamo il workbook e salviamo
+    // Save
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Nota di Vendita');
     XLSX.writeFile(wb, `${cliente}.xlsx`);
