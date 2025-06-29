@@ -559,7 +559,8 @@ function downloadExcel() {
         // Se è la riga del totale
         if (row.querySelector('#totalAmount')) {
             const totalValue = row.querySelector('#totalAmount').textContent.replace('€', '').replace('.', ',');
-            const finalRowData = ['', '', '', '', 'TOTALE', totalValue]; // TOTALE e importo totale
+            // TOTALE va nelle prime 4 colonne (C-F), l'importo totale nella colonna G
+            const finalRowData = ['', '', 'TOTALE', '', '', '', totalValue];
             XLSX.utils.sheet_add_aoa(ws, [finalRowData], { origin: `A${rowIndex + 1}` });
         } 
         // Se è la riga dell'header
@@ -577,6 +578,8 @@ function downloadExcel() {
                 // Rimuoviamo il simbolo € e sostituiamo il punto con la virgola per i numeri
                 if (cellText.startsWith('€')) {
                     cellText = cellText.replace('€', '').replace('.', ',');
+                } else if (cellText === '€0,00') {
+                    cellText = '0,00';
                 }
                 rowData.push(cellText);
             }
@@ -604,6 +607,8 @@ function downloadExcel() {
                     let cellText = cell.textContent.trim();
                     if (cellText.startsWith('€')) {
                         cellText = cellText.replace('€', '').replace('.', ',');
+                    } else if (cellText === '€0,00') {
+                        cellText = '0,00';
                     }
                     rowData.push(cellText);
                 });
