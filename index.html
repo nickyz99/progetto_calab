@@ -121,7 +121,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 // Global variables
-let products = JSON.parse(localStorage.getItem('products') || '[]');
+let products = [];
 let currentEditId = null;
 let dateCounter = 0;
 let previewData = [];
@@ -167,7 +167,6 @@ function addProduct() {
     
     const newId = Math.max(...products.map(p => p.id), 0) + 1;
     products.push({ id: newId, name: name, price: price });
-    localStorage.setItem('products', JSON.stringify(products));
     
     document.getElementById('new-product-name').value = '';
     document.getElementById('new-product-price').value = '';
@@ -224,7 +223,6 @@ function saveEditProduct() {
     if (productIndex !== -1) {
         products[productIndex].name = name;
         products[productIndex].price = price;
-        localStorage.setItem('products', JSON.stringify(products));
         cancelEdit();
         loadProducts();
     }
@@ -238,7 +236,6 @@ function cancelEdit() {
 function deleteProduct(id) {
     if (confirm('Elimina questo prodotto?')) {
         products = products.filter(p => p.id !== id);
-        localStorage.setItem('products', JSON.stringify(products));
         loadProducts();
     }
 }
@@ -590,16 +587,9 @@ function downloadExcel() {
         else {
             const rowData = ['', '']; // Due colonne vuote all'inizio (A e B)
             
-            cells.forEach((cell) => {
-                let cellText = cell.textContent.trim();
-                if (cellText.startsWith('€')) {
-                    cellText = cellText.replace('€', '').replace('.', ',');
-                }
-                rowData.push(cellText);
-            });
-            
             // Se è una riga con colspan, distribuiamo il contenuto
             if (cells.length === 1 && cells[0].getAttribute('colspan')) {
+                const cellText = cells[0].textContent.trim();
                 const colspanValue = parseInt(cells[0].getAttribute('colspan'));
                 const finalRowData = ['', '']; // A e B vuote
                 finalRowData.push(cellText); // Il testo nella colonna C
@@ -609,6 +599,14 @@ function downloadExcel() {
                 }
                 XLSX.utils.sheet_add_aoa(ws, [finalRowData], { origin: `A${rowIndex + 1}` });
             } else {
+                // Per le righe normali
+                cells.forEach((cell) => {
+                    let cellText = cell.textContent.trim();
+                    if (cellText.startsWith('€')) {
+                        cellText = cellText.replace('€', '').replace('.', ',');
+                    }
+                    rowData.push(cellText);
+                });
                 XLSX.utils.sheet_add_aoa(ws, [rowData], { origin: `A${rowIndex + 1}` });
             }
         }
@@ -645,7 +643,7 @@ function downloadExcel() {
     
     // Creiamo il workbook
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, "Nota di Vendita");
+    XLSX.utils.book_append_sheet(wb, ws, "Nota di Vendita");
     
     // Salviamo il file
     XLSX.writeFile(wb, `${cliente}.xlsx`);
