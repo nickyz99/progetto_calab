@@ -546,23 +546,23 @@ function backToForm() {
 function downloadExcel() {
     const table = document.getElementById('preview-table');
     const cliente = document.getElementById('cliente').value.trim();
-    
+
     // Creiamo i dati dell'Excel manualmente per una struttura ottimizzata
     const ws = XLSX.utils.aoa_to_sheet([]);
-    
+
     // Analizziamo la tabella HTML per estrarre i dati
     const rows = table.querySelectorAll('tr');
-    
+
     rows.forEach((row, rowIndex) => {
         const cells = row.querySelectorAll('td, th');
-        
+
         // Se è la riga del totale
         if (row.querySelector('#totalAmount')) {
             const totalValue = row.querySelector('#totalAmount').textContent.replace('€', '').replace('.', ',');
-            // TOTALE va nelle prime 4 colonne (C-F), l'importo totale nella colonna G
-            const finalRowData = ['', '', 'TOTALE', '', '', '', totalValue];
+            // Place 'TOTALE' in column F (index 5) and totalValue in column G (index 6)
+            const finalRowData = ['', '', '', '', '', 'TOTALE', totalValue];
             XLSX.utils.sheet_add_aoa(ws, [finalRowData], { origin: `A${rowIndex + 1}` });
-        } 
+        }
         // Se è la riga dell'header
         else if (cells.length === 5 && cells[4].textContent.trim() === 'IMPORTO') {
             const rowData = ['', '', 'C', 'PRODOTTO', 'KG', 'PREZZO', 'IMPORTO'];
@@ -571,44 +571,58 @@ function downloadExcel() {
         // Se la riga ha 5 colonne (le righe dati normali)
         else if (cells.length === 5) {
             const rowData = ['', '']; // Due colonne vuote all'inizio (A e B)
+
+            // Add all values from the 5 columns, mapping them to the correct Excel columns
+            const colli = cells[0].textContent.trim();
+            const productName = cells[1].textContent.trim();
+            let kg = cells[2].textContent.trim();
+            let price = cells[3].textContent.trim();
+            let amount = cells[4].textContent.trim();
+
+            // Replace '.' with ',' for numbers and remove '€' symbol
+            kg = kg.replace('.', ',');
+            if (price.startsWith('€')) price = price.replace('€', '').replace('.', ',');
+            if (amount.startsWith('€')) amount = amount.replace('€', '').replace('.', ',');
             
-            // Aggiungiamo tutti i valori dalle 5 colonne
-            for (let i = 0; i < 5; i++) {
-                let cellText = cells[i].textContent.trim();
-                // Rimuoviamo il simbolo € e sostituiamo il punto con la virgola per i numeri
-                if (cellText.startsWith('€')) {
-                    cellText = cellText.replace('€', '').replace('.', ',');
-                } else if (cellText === '€0,00') {
-                    cellText = '0,00';
-                }
-                rowData.push(cellText);
-            }
-            
+            // Map to A, B, C, D, E, F, G
+            // Empty, Empty, Colli, Product, KG, Price, Amount
+            rowData.push(colli, productName, kg, price, amount);
+
             XLSX.utils.sheet_add_aoa(ws, [rowData], { origin: `A${rowIndex + 1}` });
         }
-        // Per le altre righe (header principale, date, etc.)
+        // Per le altre righe (header principale, date, empty amount rows)
         else {
-            const rowData = ['', '']; // Due colonne vuote all'inizio (A e B)
-            
-            // Se è una riga con colspan, distribuiamo il contenuto
+            const rowData = ['', '']; // Two empty columns at the beginning (A and B)
+
+            // If it's a colspan row, distribute the content
             if (cells.length === 1 && cells[0].getAttribute('colspan')) {
                 const cellText = cells[0].textContent.trim();
                 const colspanValue = parseInt(cells[0].getAttribute('colspan'));
-                const finalRowData = ['', '']; // A e B vuote
-                finalRowData.push(cellText); // Il testo nella colonna C
-                // Riempiamo le altre colonne fino al colspan
-                for (let i = 1; i < colspanValue; i++) {
-                    finalRowData.push('');
+                
+                // If it's the main header or date row, the text should be in column C
+                if (cellText.includes('NOTA DI VENDITA') || cellText.includes('Data:')) {
+                    rowData.push(cellText); // Text in column C
+                    // Fill the other columns up to the colspan
+                    for (let i = 1; i < colspanValue; i++) {
+                        rowData.push('');
+                    }
+                } else if (cells[0].classList.contains('empty-amount-cell')) {
+                    // This is an empty amount cell with colspan.
+                    // Its content is €0,00, and it should go into column G.
+                    let amountValue = cells[0].textContent.trim();
+                    if (amountValue.startsWith('€')) {
+                        amountValue = amountValue.replace('€', '').replace('.', ',');
+                    }
+                    // The first 5 columns will be empty, then the amount in G
+                    rowData.push('', '', '', '', amountValue);
                 }
-                XLSX.utils.sheet_add_aoa(ws, [finalRowData], { origin: `A${rowIndex + 1}` });
+                XLSX.utils.sheet_add_aoa(ws, [rowData], { origin: `A${rowIndex + 1}` });
             } else {
-                // Per le righe normali
+                // For normal rows (should be handled by the cells.length === 5 case now)
                 cells.forEach((cell) => {
                     let cellText = cell.textContent.trim();
                     if (cellText.startsWith('€')) {
                         cellText = cellText.replace('€', '').replace('.', ',');
-                    } else if (cellText === '€0,00') {
-                        cellText = '0,00';
                     }
                     rowData.push(cellText);
                 });
@@ -616,25 +630,25 @@ function downloadExcel() {
             }
         }
     });
-    
+
     // Impostiamo il range del foglio per includere fino alla colonna G
     const range = XLSX.utils.decode_range(ws['!ref']);
     ws['!ref'] = XLSX.utils.encode_range({
         s: { r: range.s.r, c: 0 }, // Inizia da A1
-        e: { r: range.e.r, c: 6 }  // Finisce alla colonna G
+        e: { r: range.e.r, c: 6 }  // Finisce alla colonna G (index 6)
     });
-    
+
     // Stile per bordi spessi per le colonne con dati (C-G)
     const borderStyle = {
         style: 'thick',
         color: { rgb: '000000' }
     };
-    
+
     for (let row = range.s.r; row <= range.e.r; row++) {
         for (let col = 2; col <= 6; col++) { // Dalle colonne C a G (indici 2-6)
             const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
             if (!ws[cellAddress]) continue;
-            
+
             ws[cellAddress].s = {
                 border: {
                     top: borderStyle,
@@ -645,11 +659,11 @@ function downloadExcel() {
             };
         }
     }
-    
+
     // Creiamo il workbook
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Nota di Vendita");
-    
+
     // Salviamo il file
     XLSX.writeFile(wb, `${cliente}.xlsx`);
 }
