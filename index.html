@@ -551,55 +551,55 @@ function downloadExcel() {
     const rows = table.querySelectorAll('tr');
 
     const CELL_BORDER = { style: 'double', color: { rgb: 'FF000000' } };
-    const headerRowIndex = [];
-    const dateRowIndex = [];
+    const headerRows = new Set();
+    const dateRows = new Set();
 
-    // Populate sheet
+    // Popola il foglio
     rows.forEach((row, rowIndex) => {
         const cells = row.querySelectorAll('td, th');
         let rowData = ['', ''];
 
-        // Data or main header row (colspan=5)
+        // Riga data o header principale (colspan=5)
         if (cells.length === 1 && cells[0].colSpan === 5) {
-            const text = cells[0].textContent.trim();
-            rowData.push(text, '', '', '', '');
-            dateRowIndex.push(rowIndex);
+            rowData.push(cells[0].textContent.trim(), '', '', '', '');
+            dateRows.add(rowIndex);
         }
-        // Table header row
+        // Riga intestazione tabella (5 celle con 'IMPORTO')
         else if (cells.length === 5 && cells[4].textContent.trim() === 'IMPORTO') {
             rowData.push('C', 'PRODOTTO', 'KG', 'PREZZO', 'IMPORTO');
-            headerRowIndex.push(rowIndex);
+            headerRows.add(rowIndex);
         }
-        // Product row
+        // Riga dati prodotto
         else if (cells.length === 5) {
             const [colli, prod, kgRaw, priceRaw, amtRaw] = Array.from(cells).map(td => td.textContent.trim());
             const kg = kgRaw.replace('.', ',');
-            const price = priceRaw.replace(/[€.]/g, match => match === '€' ? '' : ',');
-            const amt = amtRaw.replace(/[€.]/g, match => match === '€' ? '' : ',');
+            const price = priceRaw.replace(/[€.]/g, m => m === '€' ? '' : ',');
+            const amt = amtRaw.replace(/[€.]/g, m => m === '€' ? '' : ',');
             rowData.push(colli, prod, kg, `€${price}`, `€${amt}`);
         }
-        // Empty amount row
+        // Riga importo zero
         else if (cells.length === 2 && cells[1].classList.contains('empty-amount-cell')) {
-            const amtRaw = cells[1].textContent.trim();
-            const amt = amtRaw.replace(/[€.]/g, match => match === '€' ? '' : ',');
+            const amt = cells[1].textContent.trim().replace(/[€.]/g, m => m === '€' ? '' : ',');
             rowData.push('', '', '', '', `€${amt}`);
         }
-        // Total row
+        // Riga totale
         else if (row.querySelector('#totalAmount')) {
-            const totalRaw = row.querySelector('#totalAmount').textContent.trim();
-            const total = totalRaw.replace(/[€.]/g, match => match === '€' ? '' : ',');
+            const total = row.querySelector('#totalAmount').textContent.trim().replace(/[€.]/g, m => m === '€' ? '' : ',');
             rowData.push('', '', '', 'TOTALE', `€${total}`);
         }
 
         XLSX.utils.sheet_add_aoa(ws, [rowData], { origin: `A${rowIndex + 1}` });
     });
 
-    // Set column range
+    // Imposta range colonne fino a G
     const range = XLSX.utils.decode_range(ws['!ref']);
-    ws['!ref'] = XLSX.utils.encode_range({ s: range.s, e: { r: range.e.r, c: 6 } });
+    ws['!ref'] = XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: range.e.r, c: 6 } });
 
-    // Auto-adjust column widths
+    // Calcolo larghezza colonne con cap e min
+    const MIN_WIDTH_FIRST = 10; // larghezza minima per A e B
+    const MAX_WIDTH = 30;       // larghezza massima per tutte le colonne
     const colWidths = [];
+
     for (let c = 0; c <= 6; c++) {
         let maxLen = 0;
         for (let r = 0; r <= range.e.r; r++) {
@@ -609,42 +609,33 @@ function downloadExcel() {
                 maxLen = Math.max(maxLen, cell.v.toString().length);
             }
         }
-        colWidths[c] = { wch: maxLen + 2 };
+        let width = maxLen + 2;
+        width = Math.min(width, MAX_WIDTH);
+        if (c === 0 || c === 1) width = MIN_WIDTH_FIRST;
+        colWidths[c] = { wch: width };
     }
     ws['!cols'] = colWidths;
 
-    // Apply styles
+    // Applica stili
     for (let r = 0; r <= range.e.r; r++) {
         for (let c = 2; c <= 6; c++) {
             const addr = XLSX.utils.encode_cell({ r, c });
             if (!ws[addr]) continue;
-            // Header row
-            if (headerRowIndex.includes(r)) {
-                ws[addr].s = {
-                    font: { bold: true },
-                    alignment: { horizontal: 'center' },
-                    border: { top: CELL_BORDER, bottom: CELL_BORDER, left: CELL_BORDER, right: CELL_BORDER }
-                };
+            const isHeader = headerRows.has(r);
+            const isDate = dateRows.has(r);
+            const style = { border: { top: CELL_BORDER, bottom: CELL_BORDER, left: CELL_BORDER, right: CELL_BORDER } };
+            if (isHeader || isDate) {
+                style.font = { bold: true };
+                style.alignment = { horizontal: 'center' };
+                if (isDate) {
+                    ws['!merges'].push({ s: { r, c: 2 }, e: { r, c: 6 } });
+                }
             }
-            // Date/main header row (merge C-G)
-            else if (dateRowIndex.includes(r)) {
-                ws['!merges'].push({ s: { r, c: 2 }, e: { r, c: 6 } });
-                ws[addr].s = {
-                    font: { bold: true },
-                    alignment: { horizontal: 'center' },
-                    border: { top: CELL_BORDER, bottom: CELL_BORDER, left: CELL_BORDER, right: CELL_BORDER }
-                };
-            }
-            // Other cells
-            else {
-                ws[addr].s = {
-                    border: { top: CELL_BORDER, bottom: CELL_BORDER, left: CELL_BORDER, right: CELL_BORDER }
-                };
-            }
+            ws[addr].s = style;
         }
     }
 
-    // Save
+    // Salva file
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Nota di Vendita');
     XLSX.writeFile(wb, `${cliente}.xlsx`);
