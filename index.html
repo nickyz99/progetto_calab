@@ -569,10 +569,15 @@ function downloadExcel() {
             rowData.push(cellText);
         });
         
+        // Aggiungiamo 10 colonne vuote dopo i dati per posizionare il totale più a destra
+        for (let i = 0; i < 10; i++) {
+            rowData.push('');
+        }
+        
         XLSX.utils.sheet_add_aoa(ws, [rowData], { origin: `A${rowIndex + 1}` });
     });
     
-    // Impostiamo i bordi più spessi per tutte le celle con dati
+    // Impostiamo i bordi più spessi per tutte le celle con dati (escludendo le colonne vuote aggiunte)
     const range = XLSX.utils.decode_range(ws['!ref']);
     
     // Stile per bordi spessi
@@ -582,7 +587,7 @@ function downloadExcel() {
     };
     
     for (let row = range.s.r; row <= range.e.r; row++) {
-        for (let col = 2; col <= range.e.c; col++) { // Iniziamo dalla colonna C (indice 2)
+        for (let col = 2; col <= 6; col++) { // Dalle colonne C a G (indici 2-6, le 5 colonne originali)
             const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
             if (!ws[cellAddress]) continue;
             
