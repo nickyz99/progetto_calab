@@ -550,7 +550,7 @@ function downloadExcel() {
     const table = document.getElementById('preview-table');
     const cliente = document.getElementById('cliente').value.trim();
     
-    // Creiamo i dati dell'Excel manualmente per aggiungere le 2 colonne vuote
+    // Creiamo i dati dell'Excel manualmente per una struttura ottimizzata
     const ws = XLSX.utils.aoa_to_sheet([]);
     
     // Analizziamo la tabella HTML per estrarre i dati
@@ -560,8 +560,8 @@ function downloadExcel() {
         const cells = row.querySelectorAll('td, th');
         const rowData = ['', '']; // Due colonne vuote all'inizio (A e B)
         
-        cells.forEach(cell => {
-            // Rimuovi il simbolo € e sostituisci . con , per i numeri
+        // Aggiungiamo i dati delle celle originali (C, D, E, F, G)
+        cells.forEach((cell, cellIndex) => {
             let cellText = cell.textContent.trim();
             if (cellText.startsWith('€')) {
                 cellText = cellText.replace('€', '').replace('.', ',');
@@ -569,25 +569,34 @@ function downloadExcel() {
             rowData.push(cellText);
         });
         
-        // Aggiungiamo 10 colonne vuote dopo i dati per posizionare il totale più a destra
-        for (let i = 0; i < 10; i++) {
-            rowData.push('');
+        // Se è la riga del totale, spostiamo il valore del totale come ultima colonna
+        if (row.querySelector('#totalAmount')) {
+            // Riga del totale: mettiamo "TOTALE" nelle prime colonne e il valore nell'ultima
+            const totalValue = row.querySelector('#totalAmount').textContent.replace('€', '').replace('.', ',');
+            const finalRowData = ['', '', 'TOTALE', '', '', '', totalValue]; // Colonne A-G
+            XLSX.utils.sheet_add_aoa(ws, [finalRowData], { origin: `A${rowIndex + 1}` });
+        } else {
+            // Per tutte le altre righe, limitiamo a 7 colonne (A-G)
+            const finalRowData = rowData.slice(0, 7);
+            XLSX.utils.sheet_add_aoa(ws, [finalRowData], { origin: `A${rowIndex + 1}` });
         }
-        
-        XLSX.utils.sheet_add_aoa(ws, [rowData], { origin: `A${rowIndex + 1}` });
     });
     
-    // Impostiamo i bordi più spessi per tutte le celle con dati (escludendo le colonne vuote aggiunte)
+    // Impostiamo il range del foglio per includere solo le colonne A-G
     const range = XLSX.utils.decode_range(ws['!ref']);
+    ws['!ref'] = XLSX.utils.encode_range({
+        s: { r: range.s.r, c: 0 }, // Inizia da A1
+        e: { r: range.e.r, c: 6 }  // Finisce alla colonna G
+    });
     
-    // Stile per bordi spessi
+    // Stile per bordi spessi per le colonne con dati (C-G)
     const borderStyle = {
         style: 'thick',
         color: { rgb: '000000' }
     };
     
     for (let row = range.s.r; row <= range.e.r; row++) {
-        for (let col = 2; col <= 6; col++) { // Dalle colonne C a G (indici 2-6, le 5 colonne originali)
+        for (let col = 2; col <= 6; col++) { // Dalle colonne C a G (indici 2-6)
             const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
             if (!ws[cellAddress]) continue;
             
