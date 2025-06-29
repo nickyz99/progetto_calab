@@ -1,11 +1,151 @@
+<!--
+Step-by-step Static index.html to replace PHP app with client-only version using SheetJS and localStorage.
+1. Scaffold HTML structure
+2. Add CSS for styling
+3. Include SheetJS script
+4. Build navigation to switch views
+5. Implement Products CRUD in JS + localStorage
+6. Implement Template view: date, cliente, preview + XLSX download
+-->
 <!DOCTYPE html>
-<html lang="en">
+<html lang="it">
 <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Document</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestione Vendite (Static)</title>
+  <!-- Step 3: Include SheetJS for XLSX generation -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+  <!-- Step 2: Basic styling -->
+  <style>
+    body { font-family: Arial, sans-serif; margin: 2rem; }
+    nav { margin-bottom: 1rem; }
+    nav button { margin-right: 1rem; padding: 0.5rem 1rem; cursor: pointer; }
+    section { display: none; }
+    section.active { display: block; }
+    table { border-collapse: collapse; width: 100%; margin-top: 1rem; }
+    th, td { border: 1px solid #333; padding: 0.5rem; text-align: center; }
+    input, button { padding: 0.5rem; }
+    .btn { background: #007acc; color: #fff; border: none; }
+    .btn:hover { background: #005fa3; }
+  </style>
 </head>
 <body>
-          
+  <!-- Step 4: Navigation -->
+  <nav>
+    <button id="show-products">Prodotti</button>
+    <button id="show-template">Genera Template</button>
+  </nav>
+
+  <!-- Step 5: Products View -->
+  <section id="products-view" class="active">
+    <h2>Gestione Prodotti</h2>
+    <form id="add-product-form">
+      <input id="product-name" placeholder="Nome prodotto" required>
+      <input id="product-price" type="number" step="0.01" placeholder="Prezzo (€)" required>
+      <button class="btn">Aggiungi</button>
+    </form>
+    <table id="products-table">
+      <thead>
+        <tr><th>ID</th><th>Nome</th><th>Prezzo (€)</th><th>Elimina</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <!-- Step 6: Template View -->
+  <section id="template-view">
+    <h2>Genera Template</h2>
+    <div>
+      <label>Cliente: <input id="cliente" placeholder="Nome Cliente"></label>
+      <label>Data: <input id="data" type="date"></label>
+      <button id="preview-btn" class="btn">Preview & Download</button>
+    </div>
+    <div id="preview-container"></div>
+  </section>
+
+  <!-- Step 5 & 6: JavaScript logic -->
+  <script>
+  (function(){
+    const STORAGE_KEY = 'prodotti';
+    const productsView = document.getElementById('products-view');
+    const templateView = document.getElementById('template-view');
+
+    // View switching
+    document.getElementById('show-products').onclick = ()=>{
+      productsView.classList.add('active');
+      templateView.classList.remove('active');
+    };
+    document.getElementById('show-template').onclick = ()=>{
+      productsView.classList.remove('active');
+      templateView.classList.add('active');
+      document.getElementById('data').value = new Date().toISOString().slice(0,10);
+    };
+
+    // LocalStorage helpers
+    function loadProducts(){ return JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]'); }
+    function saveProducts(arr){ localStorage.setItem(STORAGE_KEY, JSON.stringify(arr)); }
+
+    // Render products table
+    function renderProducts(){
+      const tbody = document.querySelector('#products-table tbody');
+      tbody.innerHTML = '';
+      loadProducts().forEach(p=>{
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${p.id}</td>
+          <td>${p.name}</td>
+          <td>€ ${p.price.toFixed(2)}</td>
+          <td><button class="btn del-btn" data-id="${p.id}">🗑️</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Add product
+    document.getElementById('add-product-form').addEventListener('submit', e=>{
+      e.preventDefault();
+      const name = document.getElementById('product-name').value.trim();
+      const price = parseFloat(document.getElementById('product-price').value);
+      if(!name||isNaN(price)) return;
+      const arr = loadProducts();
+      const id = arr.length? arr[arr.length-1].id+1 : 1;
+      arr.push({id,name,price}); saveProducts(arr);
+      renderProducts(); e.target.reset();
+    });
+
+    // Delete product
+    document.getElementById('products-table').addEventListener('click', e=>{
+      if(!e.target.classList.contains('del-btn')) return;
+      const id = +e.target.dataset.id;
+      saveProducts(loadProducts().filter(p=>p.id!==id));
+      renderProducts();
+    });
+
+    // Preview & Download
+    document.getElementById('preview-btn').addEventListener('click', ()=>{
+      const cliente = document.getElementById('cliente').value.trim()||'Cliente';
+      const date = document.getElementById('data').value;
+      const prods = loadProducts();
+      // Build data array: header + rows
+      const ws_data = [[`NOTA DI VENDITA | ${cliente}`],
+                       ['ID','PRODOTTO','PREZZO','IMPORTO']];
+      prods.forEach(p=>{
+        ws_data.push([p.id, p.name, p.price, p.price*p.price]); // adapt if needed
+      });
+      // Create workbook and sheet
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.aoa_to_sheet(ws_data);
+      XLSX.utils.book_append_sheet(wb, ws, 'Vendite');
+      // Render preview HTML
+      const html = XLSX.utils.sheet_to_html(ws);
+      document.getElementById('preview-container').innerHTML = html;
+      // Trigger download
+      XLSX.writeFile(wb, `${cliente}.xlsx`);
+    });
+
+    // Init
+    renderProducts();
+  })();
+  </script>
 </body>
 </html>
