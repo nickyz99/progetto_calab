@@ -547,56 +547,75 @@ function downloadExcel() {
 
     // Creiamo un foglio vuoto
     const ws = XLSX.utils.aoa_to_sheet([]);
+    // Inizializziamo i merges per header e righe data
+    ws['!merges'] = [];
+
     const rows = table.querySelectorAll('tr');
+    const borderStyle = { style: 'double', color: { rgb: 'FF000000' } };
 
     rows.forEach((row, rowIndex) => {
         const cells = row.querySelectorAll('td, th');
         let rowData = ['', '']; // Colonne A e B vuote
 
-        // Riga principale (NOTA DI VENDITA | CLIENTE) o data: una cella con colspan="5"
+        let isHeaderOrDate = false;
+
+        // Caso 1: Riga principale o data (una cella con colspan="5")
         if (cells.length === 1 && cells[0].getAttribute('colspan') === '5') {
             const text = cells[0].textContent.trim();
             rowData.push(text, '', '', '', '');
+            isHeaderOrDate = true;
         }
-        // Intestazione tabella principale
+        // Caso 2: Intestazione tabella principale
         else if (cells.length === 5 && cells[4].textContent.trim() === 'IMPORTO') {
             rowData.push('C', 'PRODOTTO', 'KG', 'PREZZO', 'IMPORTO');
+            isHeaderOrDate = true;
         }
-        // Riga dati prodotto
+        // Caso 3: Riga dati prodotto
         else if (cells.length === 5) {
             const colli = cells[0].textContent.trim();
             const productName = cells[1].textContent.trim();
             const kg = cells[2].textContent.trim().replace('.', ',');
             const price = cells[3].textContent.trim().replace('€', '').replace('.', ',');
             const amount = cells[4].textContent.trim().replace('€', '').replace('.', ',');
-
-            // Aggiungiamo € prima di prezzo e importo
             rowData.push(colli, productName, kg, `€${price}`, `€${amount}`);
         }
-        // Riga importo zero
+        // Caso 4: Riga importo zero
         else if (cells.length === 2 && cells[1].classList.contains('empty-amount-cell')) {
             const amountValue = cells[1].textContent.trim().replace('€', '').replace('.', ',');
             rowData.push('', '', '', '', `€${amountValue}`);
         }
-        // Riga totale
+        // Caso 5: Riga totale
         else if (row.querySelector('#totalAmount')) {
             const totalValue = row.querySelector('#totalAmount').textContent.trim().replace('€', '').replace('.', ',');
             rowData.push('', '', '', 'TOTALE', `€${totalValue}`);
         }
 
+        // Aggiungiamo i dati al foglio
         XLSX.utils.sheet_add_aoa(ws, [rowData], { origin: `A${rowIndex + 1}` });
+
+        // Se è header o data, mergiamo le celle da C a G e applichiamo stile centrale e grassetto
+        if (isHeaderOrDate) {
+            ws['!merges'].push({ s: { r: rowIndex, c: 2 }, e: { r: rowIndex, c: 6 } });
+            for (let c = 2; c <= 6; c++) {
+                const addr = XLSX.utils.encode_cell({ r: rowIndex, c: c });
+                ws[addr].s = {
+                    border: { top: borderStyle, bottom: borderStyle, left: borderStyle, right: borderStyle },
+                    font: { bold: true },
+                    alignment: { horizontal: 'center' }
+                };
+            }
+        }
     });
 
     // Impostiamo l'intervallo fino alla colonna G
     const range = XLSX.utils.decode_range(ws['!ref']);
     ws['!ref'] = XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: range.e.r, c: 6 } });
 
-    // Bordo spesso e molto scuro (nero) per le celle con dati (C-G)
-    const borderStyle = { style: 'thick', color: { rgb: '000000' } };
-    for (let r = 0; r <= range.e.r; r++) {
+    // Stili di bordo per le altre celle di C-G
+    for (let r = range.s.r; r <= range.e.r; r++) {
         for (let c = 2; c <= 6; c++) {
             const addr = XLSX.utils.encode_cell({ r: r, c: c });
-            if (!ws[addr]) continue;
+            if (!ws[addr] || ws[addr].s) continue; // saltiamo quelle già stilizzate
             ws[addr].s = { border: { top: borderStyle, bottom: borderStyle, left: borderStyle, right: borderStyle } };
         }
     }
@@ -606,7 +625,6 @@ function downloadExcel() {
     XLSX.utils.book_append_sheet(wb, ws, 'Nota di Vendita');
     XLSX.writeFile(wb, `${cliente}.xlsx`);
 }
-
 
 </script>
 
