@@ -562,9 +562,9 @@ function downloadExcel() {
         // Se è la riga del totale
         if (row.querySelector('#totalAmount')) {
             const totalValue = row.querySelector('#totalAmount').textContent.replace('€', '').replace('.', ',');
-            const finalRowData = ['', '', '', '', '', '', totalValue]; // TOTALE va nella colonna G
+            const finalRowData = ['', '', '', '', 'TOTALE', '0,00', totalValue]; // TOTALE nella colonna E, 0,00 nella F, importo totale nella G
             XLSX.utils.sheet_add_aoa(ws, [finalRowData], { origin: `A${rowIndex + 1}` });
-        } 
+        }
         // Se la riga ha 5 colonne (le righe dati normali)
         else if (cells.length === 5) {
             const rowData = ['', '']; // Due colonne vuote all'inizio (A e B)
