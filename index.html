@@ -545,88 +545,69 @@ function downloadExcel() {
     const table = document.getElementById('preview-table');
     const cliente = document.getElementById('cliente').value.trim();
 
+    // Creiamo un foglio vuoto
     const ws = XLSX.utils.aoa_to_sheet([]);
     const rows = table.querySelectorAll('tr');
 
     rows.forEach((row, rowIndex) => {
         const cells = row.querySelectorAll('td, th');
-        let rowData = ['', '']; // Start with empty columns A and B for all rows
+        let rowData = ['', '']; // Colonne A e B vuote
 
-        // Case 1: Main Header (NOTA DI VENDITA | CLIENTE) or Date Row
-        // These rows have one cell with colspan="5"
+        // Riga principale (NOTA DI VENDITA | CLIENTE) o data: una cella con colspan="5"
         if (cells.length === 1 && cells[0].getAttribute('colspan') === '5') {
-            const cellText = cells[0].textContent.trim();
-            rowData.push(cellText); // Content in column C
-            rowData.push('', '', '', ''); // Fill up to column G
+            const text = cells[0].textContent.trim();
+            rowData.push(text, '', '', '', '');
         }
-        // Case 2: Main Table Header (C, PRODOTTO, KG, PREZZO, IMPORTO)
+        // Intestazione tabella principale
         else if (cells.length === 5 && cells[4].textContent.trim() === 'IMPORTO') {
-            rowData.push('C', 'PRODOTTO', 'KG', 'PREZZO', 'IMPORTO'); // Content from C to G
+            rowData.push('C', 'PRODOTTO', 'KG', 'PREZZO', 'IMPORTO');
         }
-        // Case 3: Product Data Row
-        // These rows have 5 cells: Colli, Product, KG, Price, Amount
-        else if (cells.length === 5) { // This handles actual product data rows
+        // Riga dati prodotto
+        else if (cells.length === 5) {
             const colli = cells[0].textContent.trim();
             const productName = cells[1].textContent.trim();
-            let kg = cells[2].textContent.trim().replace('.', ',');
-            let price = cells[3].textContent.trim().replace('€', '').replace('.', ',');
-            let amount = cells[4].textContent.trim().replace('€', '').replace('.', ',');
+            const kg = cells[2].textContent.trim().replace('.', ',');
+            const price = cells[3].textContent.trim().replace('€', '').replace('.', ',');
+            const amount = cells[4].textContent.trim().replace('€', '').replace('.', ',');
 
-            rowData.push(colli, productName, kg, price, amount); // Content from C to G
+            // Aggiungiamo € prima di prezzo e importo
+            rowData.push(colli, productName, kg, `€${price}`, `€${amount}`);
         }
-        // Case 4: Empty Amount Row
-        // These rows have 2 cells: an empty td with colspan="4", and a td with €0,00
+        // Riga importo zero
         else if (cells.length === 2 && cells[1].classList.contains('empty-amount-cell')) {
-            let amountValue = cells[1].textContent.trim().replace('€', '').replace('.', ',');
-            rowData.push('', '', '', '', amountValue); // Empty C, D, E, F, then amount in G
+            const amountValue = cells[1].textContent.trim().replace('€', '').replace('.', ',');
+            rowData.push('', '', '', '', `€${amountValue}`);
         }
-        // Case 5: Total Row
-        // This row has 5 cells, with the total amount in the last one, and 'TOTALE' in the second-to-last
+        // Riga totale
         else if (row.querySelector('#totalAmount')) {
-            const totalValue = row.querySelector('#totalAmount').textContent.replace('€', '').replace('.', ',');
-            rowData.push('', '', '', 'TOTALE', totalValue); // Empty C, D, E, 'TOTALE' in F, value in G
+            const totalValue = row.querySelector('#totalAmount').textContent.trim().replace('€', '').replace('.', ',');
+            rowData.push('', '', '', 'TOTALE', `€${totalValue}`);
         }
 
         XLSX.utils.sheet_add_aoa(ws, [rowData], { origin: `A${rowIndex + 1}` });
     });
 
-    // Impostiamo il range del foglio per includere fino alla colonna G
+    // Impostiamo l'intervallo fino alla colonna G
     const range = XLSX.utils.decode_range(ws['!ref']);
-    ws['!ref'] = XLSX.utils.encode_range({
-        s: { r: range.s.r, c: 0 }, // Inizia da A1
-        e: { r: range.e.r, c: 6 }  // Finisce alla colonna G
-    });
+    ws['!ref'] = XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: range.e.r, c: 6 } });
 
-    // Stile per bordi spessi per le colonne con dati (C-G)
-    const borderStyle = {
-        style: 'thick',
-        color: { rgb: '000000' }
-    };
-
-    for (let row = range.s.r; row <= range.e.r; row++) {
-        for (let col = 2; col <= 6; col++) { // Dalle colonne C a G (indici 2-6)
-            const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
-            if (!ws[cellAddress]) continue;
-
-            ws[cellAddress].s = {
-                border: {
-                    top: borderStyle,
-                    bottom: borderStyle,
-                    left: borderStyle,
-                    right: borderStyle
-                }
-            };
+    // Bordo spesso e molto scuro (nero) per le celle con dati (C-G)
+    const borderStyle = { style: 'thick', color: { rgb: '000000' } };
+    for (let r = 0; r <= range.e.r; r++) {
+        for (let c = 2; c <= 6; c++) {
+            const addr = XLSX.utils.encode_cell({ r: r, c: c });
+            if (!ws[addr]) continue;
+            ws[addr].s = { border: { top: borderStyle, bottom: borderStyle, left: borderStyle, right: borderStyle } };
         }
     }
 
-    // Creiamo il workbook
+    // Creiamo il workbook e salviamo
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Nota di Vendita");
-
-    // Salviamo il file
+    XLSX.utils.book_append_sheet(wb, ws, 'Nota di Vendita');
     XLSX.writeFile(wb, `${cliente}.xlsx`);
 }
-console.log("funziono");
+
+
 </script>
 
 </body>
