@@ -558,25 +558,58 @@ function downloadExcel() {
     
     rows.forEach((row, rowIndex) => {
         const cells = row.querySelectorAll('td, th');
-        const rowData = ['', '']; // Due colonne vuote all'inizio (A e B)
         
-        // Aggiungiamo i dati delle celle originali (C, D, E, F, G)
-        cells.forEach((cell, cellIndex) => {
-            let cellText = cell.textContent.trim();
-            if (cellText.startsWith('€')) {
-                cellText = cellText.replace('€', '').replace('.', ',');
-            }
-            rowData.push(cellText);
-        });
-        
-        // Se è la riga del totale, spostiamo il valore del totale come ultima colonna
+        // Se è la riga del totale
         if (row.querySelector('#totalAmount')) {
-            // Riga del totale: mettiamo "TOTALE" nelle prime colonne e il valore nell'ultima
             const totalValue = row.querySelector('#totalAmount').textContent.replace('€', '').replace('.', ',');
-            const finalRowData = ['', '', 'TOTALE', '', '', '', totalValue]; // Colonne A-G
+            const finalRowData = ['', '', '', '', '', '', totalValue]; // TOTALE va nella colonna G
             XLSX.utils.sheet_add_aoa(ws, [finalRowData], { origin: `A${rowIndex + 1}` });
-        } else {
-            // Per tutte le altre righe, limitiamo a 7 colonne (A-G)
+        } 
+        // Se la riga ha 5 colonne (le righe dati normali)
+        else if (cells.length === 5) {
+            const rowData = ['', '']; // Due colonne vuote all'inizio (A e B)
+            
+            // Prendiamo i primi 4 valori (C, D, E, F) e spostiamo l'ultimo (importo) nella colonna G
+            for (let i = 0; i < 4; i++) {
+                let cellText = cells[i].textContent.trim();
+                if (i < 3) { // Per le prime 3 colonne (C, D, E) - Colli, Prodotto, KG
+                    if (cellText.startsWith('€')) {
+                        cellText = cellText.replace('€', '').replace('.', ',');
+                    }
+                    rowData.push(cellText);
+                } else { // Per la 4° colonna (F) - Prezzo
+                    if (cellText.startsWith('€')) {
+                        cellText = cellText.replace('€', '').replace('.', ',');
+                    }
+                    rowData.push(cellText);
+                }
+            }
+            
+            // Aggiungiamo una colonna vuota (F diventa vuota)
+            rowData.push('');
+            
+            // Aggiungiamo l'importo nell'ultima colonna (G)
+            let importo = cells[4].textContent.trim();
+            if (importo.startsWith('€')) {
+                importo = importo.replace('€', '').replace('.', ',');
+            }
+            rowData.push(importo);
+            
+            XLSX.utils.sheet_add_aoa(ws, [rowData], { origin: `A${rowIndex + 1}` });
+        }
+        // Per le altre righe (header, date, etc.) manteniamo la struttura originale
+        else {
+            const rowData = ['', '']; // Due colonne vuote all'inizio (A e B)
+            
+            cells.forEach((cell) => {
+                let cellText = cell.textContent.trim();
+                if (cellText.startsWith('€')) {
+                    cellText = cellText.replace('€', '').replace('.', ',');
+                }
+                rowData.push(cellText);
+            });
+            
+            // Limitiamo a 7 colonne totali (A-G)
             const finalRowData = rowData.slice(0, 7);
             XLSX.utils.sheet_add_aoa(ws, [finalRowData], { origin: `A${rowIndex + 1}` });
         }
