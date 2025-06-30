@@ -614,109 +614,84 @@ async function downloadExcelWithExcelJS() {
     const table = document.getElementById('preview-table');
     const cliente = document.getElementById('cliente').value.trim();
 
-    // Crea un nuovo workbook
+    // Crea un nuovo workbook e worksheet
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Nota di Vendita');
     
     const rows = table.querySelectorAll('tr');
-    
     const headerRows = new Set();
-    const dateRows = new Set();
-    let totalRowIndex = -1;
+    const dateRows   = new Set();
+    let totalRowIdx  = -1;
 
-    // Popola il foglio
-    rows.forEach((row, rowIndex) => {
+    // Popola il foglio (colonne B–F anziché B–G)
+    rows.forEach((row, i) => {
         const cells = row.querySelectorAll('td, th');
-        const excelRow = worksheet.getRow(rowIndex + 1);
-        
-        // Riga data o header principale (colspan=5)
+        const excelRow = worksheet.getRow(i + 1);
+
         if (cells.length === 1 && cells[0].colSpan === 5) {
             excelRow.getCell(2).value = cells[0].textContent.trim();
-            // Merge da B a G
-            worksheet.mergeCells(rowIndex + 1, 2, rowIndex + 1, 7);
-            dateRows.add(rowIndex);
+            worksheet.mergeCells(i+1, 2, i+1, 6);  // da B a F
+            dateRows.add(i);
         }
-        // Riga intestazione tabella
         else if (cells.length === 5 && cells[4].textContent.trim() === 'IMPORTO') {
-            excelRow.getCell(2).value = 'C';
-            excelRow.getCell(3).value = 'PRODOTTO';
-            excelRow.getCell(4).value = 'KG';
-            excelRow.getCell(5).value = 'PREZZO';
-            excelRow.getCell(6).value = 'IMPORTO';
-            headerRows.add(rowIndex);
+            ['C','PRODOTTO','KG','PREZZO','IMPORTO']
+              .forEach((v,j) => excelRow.getCell(2 + j).value = v);
+            headerRows.add(i);
         }
-        // Riga dati prodotto
         else if (cells.length === 5) {
-            const [colli, prod, kgRaw, priceRaw, amtRaw] = Array.from(cells).map(td => td.textContent.trim());
-            const kg = parseFloat(kgRaw).toFixed(2).replace('.', ',');
-            const price = parseFloat(priceRaw.replace('€', '')).toFixed(2).replace('.', ',');
-            const amt = parseFloat(amtRaw.replace('€', '')).toFixed(2).replace('.', ',');
-            
+            const [colli, name, kg, pr, am] = Array.from(cells).map(td=>td.textContent.trim());
             excelRow.getCell(2).value = colli;
-            excelRow.getCell(3).value = prod;
-            excelRow.getCell(4).value = kg;
-            excelRow.getCell(5).value = `€${price}`;
-            excelRow.getCell(6).value = `€${amt}`;
+            excelRow.getCell(3).value = name;
+            excelRow.getCell(4).value = parseFloat(kg).toFixed(2).replace('.', ',');
+            excelRow.getCell(5).value = pr;
+            excelRow.getCell(6).value = am;
         }
-        // Riga importo zero
         else if (cells.length === 2 && cells[1].classList.contains('empty-amount-cell')) {
-            const amtRaw = cells[1].textContent.trim();
-            const amt = parseFloat(amtRaw.replace('€', '')).toFixed(2).replace('.', ',');
-            excelRow.getCell(6).value = `€${amt}`;
+            excelRow.getCell(6).value = cells[1].textContent.trim();
         }
-        // Riga totale
         else if (row.querySelector('#totalAmount')) {
-            const total = parseFloat(row.querySelector('#totalAmount').textContent.trim().replace('€', '')).toFixed(2).replace('.', ',');
             excelRow.getCell(5).value = 'TOTALE';
-            excelRow.getCell(6).value = `€${total}`;
-            totalRowIndex = rowIndex;
+            excelRow.getCell(6).value = row.querySelector('#totalAmount').textContent.trim();
+            totalRowIdx = i;
         }
     });
 
-    // Applica stili e bordi
+    // Stili e bordi su B–F
     for (let r = 1; r <= rows.length; r++) {
-        for (let c = 2; c <= 7; c++) { // Da colonna B a G
+        for (let c = 2; c <= 6; c++) {
             const cell = worksheet.getCell(r, c);
-            
-            // Bordo nero spesso
             cell.border = {
-                top: { style: 'medium', color: { argb: 'FF000000' } },
-                left: { style: 'medium', color: { argb: 'FF000000' } },
+                top:    { style: 'medium', color: { argb: 'FF000000' } },
+                left:   { style: 'medium', color: { argb: 'FF000000' } },
                 bottom: { style: 'medium', color: { argb: 'FF000000' } },
-                right: { style: 'medium', color: { argb: 'FF000000' } }
+                right:  { style: 'medium', color: { argb: 'FF000000' } }
             };
-
-            const isHeader = headerRows.has(r - 1);
-            const isDate = dateRows.has(r - 1);
-            const isTotalRow = (r - 1 === totalRowIndex);
-
-            if (isHeader || isTotalRow) {
+            const idx = r - 1;
+            if (headerRows.has(idx) || idx === totalRowIdx) {
                 cell.font = { bold: true };
                 cell.alignment = { horizontal: 'center' };
-            } else if (isDate) {
+            } else if (dateRows.has(idx)) {
                 cell.font = { bold: true };
                 cell.alignment = { horizontal: 'left' };
             }
         }
     }
 
-    // Imposta larghezza colonne
-    worksheet.getColumn(1).width = 10; // Colonna A vuota
-    worksheet.getColumn(2).width = 10; // Colonna B
-    worksheet.getColumn(3).width = 25; // Colonna C - PRODOTTO
-    worksheet.getColumn(4).width = 10; // Colonna D - KG
-    worksheet.getColumn(5).width = 12; // Colonna E - PREZZO
-    worksheet.getColumn(6).width = 12; // Colonna F - IMPORTO
+    // Larghezze colonne A–F
+    worksheet.getColumn(1).width = 10;
+    worksheet.getColumn(2).width = 10;
+    worksheet.getColumn(3).width = 10;
+    worksheet.getColumn(4).width = 17;
+    worksheet.getColumn(5).width = 10;
+    worksheet.getColumn(6).width = 15;
 
-    // Salva il file
+    // Genera e scarica
     const buffer = await workbook.xlsx.writeBuffer();
-    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${cliente}.xlsx`;
-    a.click();
-    window.URL.revokeObjectURL(url);
+    const blob   = new Blob([buffer], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url    = URL.createObjectURL(blob);
+    const a      = document.createElement('a');
+    a.href = url; a.download = `${cliente}.xlsx`; a.click();
+    URL.revokeObjectURL(url);
 }
 
 </script>
