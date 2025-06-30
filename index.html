@@ -662,9 +662,11 @@ function downloadExcel() {
     ws['!merges'] = [];
     const rows = table.querySelectorAll('tr');
 
-    // Define the 2px black border style
-    // 'medium' is the closest to 2px, and FF000000 is pure black.
-    const THICK_BORDER = { style: 'medium', color: { rgb: 'FF000000' } };
+    // Define the 2px black border style - versione corretta
+    const THICK_BORDER = { 
+        style: 'medium', 
+        color: { rgb: '000000' } // Rimosso il prefisso FF
+    };
     
     const headerRows = new Set();
     const dateRows = new Set();
@@ -783,7 +785,6 @@ function downloadExcel() {
 
             // Apply styles to the cell
             ws[addr].s = {
-                ...ws[addr].s, // Preserve existing styles if any
                 border: borderStyle,
                 font: fontStyle,
                 alignment: alignmentStyle
