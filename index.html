@@ -663,14 +663,16 @@ function downloadExcel() {
     ws['!merges'] = [];
     const rows = table.querySelectorAll('tr');
 
-    const CELL_BORDER = { style: 'double', color: { rgb: 'FF000000' } };
+    // Define the 2px black border style
+    const THICK_BORDER = { style: 'medium', color: { rgb: 'FF000000' } }; // 'medium' typically translates to 2px
     const headerRows = new Set();
     const dateRows = new Set();
+    const totalRowIndex = -1; // To store the index of the total row
 
     // Popola il foglio
     rows.forEach((row, rowIndex) => {
         const cells = row.querySelectorAll('td, th');
-        let rowData = ['', ''];
+        let rowData = ['', '']; // Offset by 2 columns (A, B)
 
         // Riga data o header principale (colspan=5)
         if (cells.length === 1 && cells[0].colSpan === 5) {
@@ -685,20 +687,23 @@ function downloadExcel() {
         // Riga dati prodotto
         else if (cells.length === 5) {
             const [colli, prod, kgRaw, priceRaw, amtRaw] = Array.from(cells).map(td => td.textContent.trim());
-            const kg = kgRaw.replace('.', ',');
-            const price = priceRaw.replace(/[€.]/g, m => m === '€' ? '' : ',');
-            const amt = amtRaw.replace(/[€.]/g, m => m === '€' ? '' : ',');
+            // Replace comma with dot for proper number parsing, then format for display
+            const kg = parseFloat(kgRaw).toFixed(2).replace('.', ',');
+            const price = parseFloat(priceRaw.replace('€', '')).toFixed(2).replace('.', ',');
+            const amt = parseFloat(amtRaw.replace('€', '')).toFixed(2).replace('.', ',');
             rowData.push(colli, prod, kg, `€${price}`, `€${amt}`);
         }
         // Riga importo zero
         else if (cells.length === 2 && cells[1].classList.contains('empty-amount-cell')) {
-            const amt = cells[1].textContent.trim().replace(/[€.]/g, m => m === '€' ? '' : ',');
+            const amtRaw = cells[1].textContent.trim();
+            const amt = parseFloat(amtRaw.replace('€', '')).toFixed(2).replace('.', ',');
             rowData.push('', '', '', '', `€${amt}`);
         }
         // Riga totale
         else if (row.querySelector('#totalAmount')) {
-            const total = row.querySelector('#totalAmount').textContent.trim().replace(/[€.]/g, m => m === '€' ? '' : ',');
+            const total = parseFloat(row.querySelector('#totalAmount').textContent.trim().replace('€', '')).toFixed(2).replace('.', ',');
             rowData.push('', '', '', 'TOTALE', `€${total}`);
+            totalRowIndex = rowIndex; // Capture the total row index
         }
 
         XLSX.utils.sheet_add_aoa(ws, [rowData], { origin: `A${rowIndex + 1}` });
@@ -731,20 +736,45 @@ function downloadExcel() {
 
     // Applica stili
     for (let r = 0; r <= range.e.r; r++) {
-        for (let c = 2; c <= 6; c++) {
+        for (let c = 2; c <= 6; c++) { // Apply borders from column C (index 2) to G (index 6)
             const addr = XLSX.utils.encode_cell({ r, c });
-            if (!ws[addr]) continue;
+            if (!ws[addr]) { // Ensure cell exists before applying style
+                 ws[addr] = { t: 's', v: '' }; // Create an empty cell if it doesn't exist to apply style
+            }
+            
             const isHeader = headerRows.has(r);
             const isDate = dateRows.has(r);
-            const style = { border: { top: CELL_BORDER, bottom: CELL_BORDER, left: CELL_BORDER, right: CELL_BORDER } };
-            if (isHeader || isDate) {
-                style.font = { bold: true };
-                style.alignment = { horizontal: 'center' };
-                if (isDate) {
-                    ws['!merges'].push({ s: { r, c: 2 }, e: { r, c: 6 } });
-                }
+            const isTotalRow = (r === totalRowIndex);
+
+            // Default border for all cells in the relevant columns
+            let borderStyle = { 
+                top: THICK_BORDER, 
+                bottom: THICK_BORDER, 
+                left: THICK_BORDER, 
+                right: THICK_BORDER 
+            };
+            
+            // Apply font and alignment for header/date rows
+            let fontStyle = {};
+            let alignmentStyle = {};
+
+            if (isHeader || isDate || isTotalRow) {
+                fontStyle = { bold: true };
+                alignmentStyle = { horizontal: 'center' };
             }
-            ws[addr].s = style;
+
+            // Merge for date rows
+            if (isDate) {
+                ws['!merges'].push({ s: { r, c: 2 }, e: { r, c: 6 } });
+            }
+
+            // Apply styles to the cell
+            ws[addr].s = {
+                ...ws[addr].s, // Preserve existing styles if any
+                border: borderStyle,
+                font: fontStyle,
+                alignment: alignmentStyle
+            };
         }
     }
 
@@ -753,7 +783,6 @@ function downloadExcel() {
     XLSX.utils.book_append_sheet(wb, ws, 'Nota di Vendita');
     XLSX.writeFile(wb, `${cliente}.xlsx`);
 }
-
 </script>
 
 </body>
