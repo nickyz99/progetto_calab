@@ -662,10 +662,10 @@ function downloadExcel() {
     ws['!merges'] = [];
     const rows = table.querySelectorAll('tr');
 
-    // Define the 2px black border style - versione corretta
+    // Define the 2px black border style - versione più robusta
     const THICK_BORDER = { 
         style: 'medium', 
-        color: { rgb: '000000' } // Rimosso il prefisso FF
+        color: { indexed: 64 } // Nero standard di Excel
     };
     
     const headerRows = new Set();
