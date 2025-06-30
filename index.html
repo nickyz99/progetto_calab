@@ -678,12 +678,12 @@ async function downloadExcelWithExcelJS() {
     }
 
     // Larghezze colonne A–F
-    worksheet.getColumn(1).width = 10;
-    worksheet.getColumn(2).width = 10;
-    worksheet.getColumn(3).width = 17;
-    worksheet.getColumn(4).width = 10;
-    worksheet.getColumn(5).width = 10;
-    worksheet.getColumn(6).width = 15;
+    worksheet.getColumn(1).width = 12;
+    worksheet.getColumn(2).width = 9;
+    worksheet.getColumn(3).width = 15;
+    worksheet.getColumn(4).width = 9;
+    worksheet.getColumn(5).width = 9;
+    worksheet.getColumn(6).width = 10;
 
     // Genera e scarica
     const buffer = await workbook.xlsx.writeBuffer();
