@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -137,6 +136,23 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
 
 <script>
+// Persistenza in localStorage
+function saveProductsToStorage() {
+  localStorage.setItem('products', JSON.stringify(products));
+}
+
+function loadProductsFromStorage() {
+  const stored = localStorage.getItem('products');
+  if (stored) {
+    try {
+      products = JSON.parse(stored);
+    } catch (e) {
+      console.error('Errore parsing localStorage products:', e);
+      products = [];
+    }
+  }
+}
+
 // Global variables
 let products = [];
 let currentEditId = null;
@@ -145,6 +161,7 @@ let previewData = [];
 
 // Initialize
 document.addEventListener('DOMContentLoaded', function() {
+    loadProductsFromStorage();
     loadProducts();
     setupEventListeners();
     document.getElementById('date1').value = new Date().toISOString().slice(0,10);
@@ -154,9 +171,7 @@ document.addEventListener('DOMContentLoaded', function() {
 function showStatusMessage(message, isError = false) {
     const statusDiv = document.getElementById('status-message');
     statusDiv.innerHTML = `<div class="status-message ${isError ? 'status-error' : 'status-success'}">${message}</div>`;
-    setTimeout(() => {
-        statusDiv.innerHTML = '';
-    }, 3000);
+    setTimeout(() => { statusDiv.innerHTML = ''; }, 3000);
 }
 
 function downloadProductsJSON() {
@@ -164,61 +179,41 @@ function downloadProductsJSON() {
         showStatusMessage('Nessun prodotto da salvare!', true);
         return;
     }
-    
     const dataStr = JSON.stringify(products, null, 2);
-    const dataBlob = new Blob([dataStr], {type: 'application/json'});
-    const url = URL.createObjectURL(dataBlob);
+    const blob = new Blob([dataStr], {type: 'application/json'});
+    const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    link.href = url;
-    link.download = 'prodotti.json';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    link.href = url; link.download = 'prodotti.json';
+    document.body.appendChild(link); link.click(); document.body.removeChild(link);
     URL.revokeObjectURL(url);
-    
     showStatusMessage(`File prodotti.json scaricato con ${products.length} prodotti!`);
 }
 
 function loadProductsFromFile(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    
+    const file = event.target.files[0]; if (!file) return;
     const reader = new FileReader();
     reader.onload = function(e) {
         try {
-            const loadedProducts = JSON.parse(e.target.result);
-            
-            if (!Array.isArray(loadedProducts)) {
-                throw new Error('Il file deve contenere un array di prodotti');
-            }
-            
-            // Validazione struttura prodotti
-            for (let product of loadedProducts) {
-                if (!product.id || !product.name || typeof product.price !== 'number') {
-                    throw new Error('Struttura prodotto non valida. Ogni prodotto deve avere: id, name, price');
-                }
-            }
-            
-            products = loadedProducts;
+            const loaded = JSON.parse(e.target.result);
+            if (!Array.isArray(loaded)) throw new Error('Array atteso');
+            loaded.forEach(p => { if (!p.id||!p.name||typeof p.price!=='number') throw new Error(); });
+            products = loaded;
+            saveProductsToStorage();
             loadProducts();
             showStatusMessage(`Caricati ${products.length} prodotti dal file JSON!`);
-            
-        } catch (error) {
-            showStatusMessage(`Errore nel caricamento del file: ${error.message}`, true);
+        } catch (err) {
+            showStatusMessage(`Errore: ${err.message}`, true);
         }
     };
     reader.readAsText(file);
-    event.target.value = ''; // Reset input
+    event.target.value = '';
 }
 
 function clearAllProducts() {
-    if (products.length === 0) {
-        showStatusMessage('Nessun prodotto da cancellare!', true);
-        return;
-    }
-    
-    if (confirm(`Sei sicuro di voler cancellare tutti i ${products.length} prodotti?`)) {
+    if (!products.length) { showStatusMessage('Nessun prodotto da cancellare!', true); return; }
+    if (confirm(`Cancelli tutti i ${products.length} prodotti?`)) {
         products = [];
+        saveProductsToStorage();
         loadProducts();
         showStatusMessage('Tutti i prodotti sono stati cancellati!');
     }
@@ -227,7 +222,6 @@ function clearAllProducts() {
 function setupEventListeners() {
     document.getElementById('nav-products').addEventListener('click', () => showSection('products'));
     document.getElementById('nav-template').addEventListener('click', () => showSection('template'));
-    
     document.getElementById('multi_date').addEventListener('change', toggleMultiDateSection);
     document.getElementById('add_date_btn').addEventListener('click', () => addDateSection());
 }
@@ -235,12 +229,11 @@ function setupEventListeners() {
 function showSection(section) {
     document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
     document.querySelectorAll('[id$="-section"]').forEach(s => s.classList.add('hidden'));
-    
-    if (section === 'products') {
+    if (section==='products') {
         document.getElementById('nav-products').classList.add('active');
         document.getElementById('products-section').classList.remove('hidden');
         loadProducts();
-    } else if (section === 'template') {
+    } else {
         document.getElementById('nav-template').classList.add('active');
         document.getElementById('template-section').classList.remove('hidden');
         buildSingleDateTable();
@@ -250,93 +243,54 @@ function showSection(section) {
 function addProduct() {
     const name = document.getElementById('new-product-name').value.trim();
     const price = parseFloat(document.getElementById('new-product-price').value);
-    
-    if (!name || isNaN(price)) {
-        showStatusMessage('Inserisci nome e prezzo validi', true);
-        return;
-    }
-    
-    const newId = Math.max(...products.map(p => p.id), 0) + 1;
-    products.push({ id: newId, name: name, price: price });
-    
-    document.getElementById('new-product-name').value = '';
-    document.getElementById('new-product-price').value = '';
+    if (!name||isNaN(price)) { showStatusMessage('Inserisci nome e prezzo validi', true); return; }
+    const newId = Math.max(0, ...products.map(p=>p.id)) + 1;
+    products.push({ id:newId, name, price });
+    saveProductsToStorage();
     loadProducts();
     showStatusMessage(`Prodotto "${name}" aggiunto!`);
 }
 
 function loadProducts() {
-    const table = document.getElementById('products-table');
-    const tbody = table.querySelector('tbody') || table;
-    
-    // Clear existing rows except header
-    while (tbody.rows.length > 1) {
-        tbody.deleteRow(1);
-    }
-    
-    if (products.length === 0) {
-        const row = tbody.insertRow();
-        row.innerHTML = '<td colspan="5">Nessun prodotto presente. <br><small>Aggiungi prodotti manualmente o carica un file JSON.</small></td>';
+    const tbl = document.getElementById('products-table');
+    const tbody = tbl.querySelector('tbody')||tbl;
+    while (tbody.rows.length>1) tbody.deleteRow(1);
+    if (!products.length) {
+        const r=tbody.insertRow(); r.innerHTML='<td colspan="5">Nessun prodotto presente.<br><small>Aggiungi o carica JSON.</small></td>';
         return;
     }
-    
-    products.forEach(product => {
-        const row = tbody.insertRow();
-        row.innerHTML = `
-            <td>${product.id}</td>
-            <td>${product.name}</td>
-            <td>${product.price.toFixed(2).replace('.', ',')}</td>
-            <td><button class="btn" onclick="editProduct(${product.id})" title="Modifica">✏️</button></td>
-            <td><button class="btn danger" onclick="deleteProduct(${product.id})" title="Elimina">🗑️</button></td>
-        `;
+    products.forEach(p=>{
+        const r=tbody.insertRow();
+        r.innerHTML=`<td>${p.id}</td><td>${p.name}</td><td>${p.price.toFixed(2).replace('.',',')}</td>
+            <td><button class="btn" onclick="editProduct(${p.id})">✏️</button></td>
+            <td><button class="btn danger" onclick="deleteProduct(${p.id})">🗑️</button></td>`;
     });
 }
 
 function editProduct(id) {
-    const product = products.find(p => p.id === id);
-    if (!product) return;
-    
-    currentEditId = id;
-    document.getElementById('edit-name').value = product.name;
-    document.getElementById('edit-price').value = product.price;
+    const prod = products.find(p=>p.id===id); if(!prod) return;
+    currentEditId=id;
+    document.getElementById('edit-name').value=prod.name;
+    document.getElementById('edit-price').value=prod.price;
     document.getElementById('edit-product-form').classList.remove('hidden');
 }
 
 function saveEditProduct() {
-    const name = document.getElementById('edit-name').value.trim();
-    const price = parseFloat(document.getElementById('edit-price').value);
-    
-    if (!name || isNaN(price)) {
-        showStatusMessage('Inserisci nome e prezzo validi', true);
-        return;
-    }
-    
-    const productIndex = products.findIndex(p => p.id === currentEditId);
-    if (productIndex !== -1) {
-        products[productIndex].name = name;
-        products[productIndex].price = price;
-        cancelEdit();
-        loadProducts();
-        showStatusMessage('Prodotto modificato con successo!');
-    }
+    const name=document.getElementById('edit-name').value.trim();
+    const price=parseFloat(document.getElementById('edit-price').value);
+    if(!name||isNaN(price)) { showStatusMessage('Inserisci nome e prezzo validi',true); return; }
+    const idx=products.findIndex(p=>p.id===currentEditId);
+    if(idx!==-1){ products[idx].name=name; products[idx].price=price; }
+    saveProductsToStorage();
+    cancelEdit(); loadProducts(); showStatusMessage('Prodotto modificato con successo!');
 }
 
-function cancelEdit() {
-    currentEditId = null;
-    document.getElementById('edit-product-form').classList.add('hidden');
-}
+function cancelEdit() { currentEditId=null; document.getElementById('edit-product-form').classList.add('hidden'); }
 
 function deleteProduct(id) {
-    const product = products.find(p => p.id === id);
-    if (!product) return;
-    
-    if (confirm(`Elimina il prodotto "${product.name}"?`)) {
-        products = products.filter(p => p.id !== id);
-        loadProducts();
-        showStatusMessage(`Prodotto "${product.name}" eliminato!`);
-    }
+    const prod=products.find(p=>p.id===id); if(!prod)return;
+    if(confirm(`Elimina "${prod.name}"?`)){ products=products.filter(p=>p.id!==id); saveProductsToStorage(); loadProducts(); showStatusMessage(`Prodotto "${prod.name}" eliminato!`); }
 }
-
 function buildSingleDateTable() {
     const tbody = document.querySelector('#single-date-table tbody');
     tbody.innerHTML = '';
