@@ -128,12 +128,14 @@
   <div id="preview-section" class="hidden">
     <h3>Preview (valori calcolati)</h3>
     <div id="preview"></div>
-    <p><button class="btn" onclick="downloadExcel()">Download .xlsx</button></p>
+    <p><button onclick="downloadExcelWithExcelJS()">Download Excel</button></p>
     <button class="btn" onclick="backToForm()">Torna al Form</button>
   </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+
 <script>
 // Global variables
 let products = [];
@@ -653,150 +655,116 @@ function backToForm() {
     document.getElementById('template-form').classList.remove('hidden');
     document.getElementById('preview-section').classList.add('hidden');
 }
-function downloadExcel() {
+
+async function downloadExcelWithExcelJS() {
     const table = document.getElementById('preview-table');
     const cliente = document.getElementById('cliente').value.trim();
 
-    // Creiamo un foglio vuoto
-    const ws = XLSX.utils.aoa_to_sheet([]);
-    ws['!merges'] = [];
+    // Crea un nuovo workbook
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Nota di Vendita');
+    
     const rows = table.querySelectorAll('tr');
-
-    // Define the 2px black border style - versione più robusta
-    const THICK_BORDER = { 
-        style: 'medium', 
-        color: { indexed: 64 } // Nero standard di Excel
-    };
     
     const headerRows = new Set();
     const dateRows = new Set();
-    let totalRowIndex = -1; // To store the index of the total row
+    let totalRowIndex = -1;
 
     // Popola il foglio
     rows.forEach((row, rowIndex) => {
         const cells = row.querySelectorAll('td, th');
-        // Start with only ONE empty column (for Excel column A)
-        let rowData = ['']; 
-
+        const excelRow = worksheet.getRow(rowIndex + 1);
+        
         // Riga data o header principale (colspan=5)
         if (cells.length === 1 && cells[0].colSpan === 5) {
-            // Data or main header spans across the table columns (B-G)
-            rowData.push(cells[0].textContent.trim(), '', '', '', ''); 
+            excelRow.getCell(2).value = cells[0].textContent.trim();
+            // Merge da B a G
+            worksheet.mergeCells(rowIndex + 1, 2, rowIndex + 1, 7);
             dateRows.add(rowIndex);
         }
-        // Riga intestazione tabella (5 celle con 'IMPORTO')
+        // Riga intestazione tabella
         else if (cells.length === 5 && cells[4].textContent.trim() === 'IMPORTO') {
-            // Header for C, PRODOTTO, KG, PREZZO, IMPORTO (these will be in B, C, D, E, F in Excel)
-            rowData.push('C', 'PRODOTTO', 'KG', 'PREZZO', 'IMPORTO');
+            excelRow.getCell(2).value = 'C';
+            excelRow.getCell(3).value = 'PRODOTTO';
+            excelRow.getCell(4).value = 'KG';
+            excelRow.getCell(5).value = 'PREZZO';
+            excelRow.getCell(6).value = 'IMPORTO';
             headerRows.add(rowIndex);
         }
         // Riga dati prodotto
         else if (cells.length === 5) {
             const [colli, prod, kgRaw, priceRaw, amtRaw] = Array.from(cells).map(td => td.textContent.trim());
-            // Replace comma with dot for proper number parsing, then format for display
             const kg = parseFloat(kgRaw).toFixed(2).replace('.', ',');
             const price = parseFloat(priceRaw.replace('€', '')).toFixed(2).replace('.', ',');
             const amt = parseFloat(amtRaw.replace('€', '')).toFixed(2).replace('.', ',');
-            rowData.push(colli, prod, kg, `€${price}`, `€${amt}`);
+            
+            excelRow.getCell(2).value = colli;
+            excelRow.getCell(3).value = prod;
+            excelRow.getCell(4).value = kg;
+            excelRow.getCell(5).value = `€${price}`;
+            excelRow.getCell(6).value = `€${amt}`;
         }
-        // Riga importo zero (empty amount cells)
+        // Riga importo zero
         else if (cells.length === 2 && cells[1].classList.contains('empty-amount-cell')) {
             const amtRaw = cells[1].textContent.trim();
             const amt = parseFloat(amtRaw.replace('€', '')).toFixed(2).replace('.', ',');
-            // These empty rows still need to align their amount in column G
-            rowData.push('', '', '', '', `€${amt}`); 
+            excelRow.getCell(6).value = `€${amt}`;
         }
         // Riga totale
         else if (row.querySelector('#totalAmount')) {
             const total = parseFloat(row.querySelector('#totalAmount').textContent.trim().replace('€', '')).toFixed(2).replace('.', ',');
-            rowData.push('', '', '', 'TOTALE', `€${total}`);
-            totalRowIndex = rowIndex; // Capture the total row index
+            excelRow.getCell(5).value = 'TOTALE';
+            excelRow.getCell(6).value = `€${total}`;
+            totalRowIndex = rowIndex;
         }
-
-        XLSX.utils.sheet_add_aoa(ws, [rowData], { origin: `A${rowIndex + 1}` });
     });
 
-    // Imposta range colonne fino a G (Adjusted for 1 empty column)
-    // The table effectively starts from column B (index 1) in Excel,
-    // so the range should be from A (index 0) to G (index 6) in the worksheet.
-    const range = XLSX.utils.decode_range(ws['!ref']);
-    ws['!ref'] = XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: range.e.r, c: 6 } });
-
-    // Calcolo larghezza colonne con cap e min
-    const MIN_WIDTH_FIRST = 10; 
-    const MAX_WIDTH = 30;       
-    const colWidths = [];
-
-    // Loop through 7 columns (A to G)
-    for (let c = 0; c <= 6; c++) { 
-        let maxLen = 0;
-        for (let r = 0; r <= range.e.r; r++) {
-            const addr = XLSX.utils.encode_cell({ r, c });
-            const cell = ws[addr];
-            if (cell && cell.v != null) {
-                maxLen = Math.max(maxLen, cell.v.toString().length);
-            }
-        }
-        let width = maxLen + 2;
-        width = Math.min(width, MAX_WIDTH);
-        // Column A (index 0) is the empty one, Column B (index 1) is the first data column.
-        if (c === 0 || c === 1) width = MIN_WIDTH_FIRST; 
-        colWidths[c] = { wch: width };
-    }
-    ws['!cols'] = colWidths;
-
-    // Applica stili
-    for (let r = 0; r <= range.e.r; r++) {
-        // Apply borders from Excel column B (index 1 in worksheet) to G (index 6 in worksheet)
-        for (let c = 1; c <= 6; c++) { 
-            const addr = XLSX.utils.encode_cell({ r, c });
-            // Ensure cell exists before applying style, create if it doesn't
-            if (!ws[addr]) { 
-                 ws[addr] = { t: 's', v: '' }; 
-            }
+    // Applica stili e bordi
+    for (let r = 1; r <= rows.length; r++) {
+        for (let c = 2; c <= 7; c++) { // Da colonna B a G
+            const cell = worksheet.getCell(r, c);
             
-            const isHeader = headerRows.has(r);
-            const isDate = dateRows.has(r);
-            const isTotalRow = (r === totalRowIndex);
-
-            // Define border style for all four sides
-            let borderStyle = { 
-                top: THICK_BORDER, 
-                bottom: THICK_BORDER, 
-                left: THICK_BORDER, 
-                right: THICK_BORDER 
+            // Bordo nero spesso
+            cell.border = {
+                top: { style: 'medium', color: { argb: 'FF000000' } },
+                left: { style: 'medium', color: { argb: 'FF000000' } },
+                bottom: { style: 'medium', color: { argb: 'FF000000' } },
+                right: { style: 'medium', color: { argb: 'FF000000' } }
             };
-            
-            let fontStyle = {};
-            let alignmentStyle = {};
+
+            const isHeader = headerRows.has(r - 1);
+            const isDate = dateRows.has(r - 1);
+            const isTotalRow = (r - 1 === totalRowIndex);
 
             if (isHeader || isTotalRow) {
-                fontStyle = { bold: true };
-                alignmentStyle = { horizontal: 'center' };
+                cell.font = { bold: true };
+                cell.alignment = { horizontal: 'center' };
             } else if (isDate) {
-                fontStyle = { bold: true };
-                alignmentStyle = { horizontal: 'left' }; // Date label is left-aligned
+                cell.font = { bold: true };
+                cell.alignment = { horizontal: 'left' };
             }
-
-            // Merge for date rows - should span from column B to G
-            if (isDate) {
-                ws['!merges'].push({ s: { r, c: 1 }, e: { r, c: 6 } }); 
-            }
-
-            // Apply styles to the cell
-            ws[addr].s = {
-                border: borderStyle,
-                font: fontStyle,
-                alignment: alignmentStyle
-            };
         }
     }
 
-    // Salva file
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Nota di Vendita');
-    XLSX.writeFile(wb, `${cliente}.xlsx`);
+    // Imposta larghezza colonne
+    worksheet.getColumn(1).width = 10; // Colonna A vuota
+    worksheet.getColumn(2).width = 10; // Colonna B
+    worksheet.getColumn(3).width = 25; // Colonna C - PRODOTTO
+    worksheet.getColumn(4).width = 10; // Colonna D - KG
+    worksheet.getColumn(5).width = 12; // Colonna E - PREZZO
+    worksheet.getColumn(6).width = 12; // Colonna F - IMPORTO
+
+    // Salva il file
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${cliente}.xlsx`;
+    a.click();
+    window.URL.revokeObjectURL(url);
 }
+
 </script>
 
 </body>
