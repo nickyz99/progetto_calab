@@ -663,7 +663,7 @@ function downloadExcel() {
     const rows = table.querySelectorAll('tr');
 
     // Define the 2px black border style
-    // Using 'medium' for thickness and ensuring pure black color
+    // 'medium' is the closest to 2px, and FF000000 is pure black.
     const THICK_BORDER = { style: 'medium', color: { rgb: 'FF000000' } };
     
     const headerRows = new Set();
@@ -673,18 +673,18 @@ function downloadExcel() {
     // Popola il foglio
     rows.forEach((row, rowIndex) => {
         const cells = row.querySelectorAll('td, th');
-        // Start with only ONE empty column (for column A)
+        // Start with only ONE empty column (for Excel column A)
         let rowData = ['']; 
 
         // Riga data o header principale (colspan=5)
         if (cells.length === 1 && cells[0].colSpan === 5) {
-            // Data or main header spans across the table columns (C-G)
+            // Data or main header spans across the table columns (B-G)
             rowData.push(cells[0].textContent.trim(), '', '', '', ''); 
             dateRows.add(rowIndex);
         }
         // Riga intestazione tabella (5 celle con 'IMPORTO')
         else if (cells.length === 5 && cells[4].textContent.trim() === 'IMPORTO') {
-            // Header for C, PRODOTTO, KG, PREZZO, IMPORTO
+            // Header for C, PRODOTTO, KG, PREZZO, IMPORTO (these will be in B, C, D, E, F in Excel)
             rowData.push('C', 'PRODOTTO', 'KG', 'PREZZO', 'IMPORTO');
             headerRows.add(rowIndex);
         }
@@ -715,9 +715,9 @@ function downloadExcel() {
     });
 
     // Imposta range colonne fino a G (Adjusted for 1 empty column)
-    const range = XLSX.utils.decode_range(ws['!ref']);
     // The table effectively starts from column B (index 1) in Excel,
-    // so the range should be from A (index 0) to F (index 5) in sheet_add_aoa, which maps to G in Excel
+    // so the range should be from A (index 0) to G (index 6) in the worksheet.
+    const range = XLSX.utils.decode_range(ws['!ref']);
     ws['!ref'] = XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: range.e.r, c: 6 } });
 
     // Calcolo larghezza colonne con cap e min
@@ -737,8 +737,7 @@ function downloadExcel() {
         }
         let width = maxLen + 2;
         width = Math.min(width, MAX_WIDTH);
-        // Column A (index 0) is the empty one, Column B (index 1) is "C" or "PRODOTTO" etc.
-        // We want minimum width for column A, and then for B (which is the actual first data column)
+        // Column A (index 0) is the empty one, Column B (index 1) is the first data column.
         if (c === 0 || c === 1) width = MIN_WIDTH_FIRST; 
         colWidths[c] = { wch: width };
     }
@@ -746,10 +745,10 @@ function downloadExcel() {
 
     // Applica stili
     for (let r = 0; r <= range.e.r; r++) {
-        // Apply borders from column B (index 1) to G (index 6) in the Excel sheet
-        // This corresponds to cells[0] to cells[5] in our `rowData`
+        // Apply borders from Excel column B (index 1 in worksheet) to G (index 6 in worksheet)
         for (let c = 1; c <= 6; c++) { 
             const addr = XLSX.utils.encode_cell({ r, c });
+            // Ensure cell exists before applying style, create if it doesn't
             if (!ws[addr]) { 
                  ws[addr] = { t: 's', v: '' }; 
             }
@@ -758,6 +757,7 @@ function downloadExcel() {
             const isDate = dateRows.has(r);
             const isTotalRow = (r === totalRowIndex);
 
+            // Define border style for all four sides
             let borderStyle = { 
                 top: THICK_BORDER, 
                 bottom: THICK_BORDER, 
@@ -783,7 +783,7 @@ function downloadExcel() {
 
             // Apply styles to the cell
             ws[addr].s = {
-                ...ws[addr].s, 
+                ...ws[addr].s, // Preserve existing styles if any
                 border: borderStyle,
                 font: fontStyle,
                 alignment: alignmentStyle

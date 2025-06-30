@@ -1,0 +1,22 @@
+[
+  {
+    "id": 1,
+    "name": "ROSSI",
+    "price": 12
+  },
+  {
+    "id": 2,
+    "name": "VIOLA I",
+    "price": 50
+  },
+  {
+    "id": 3,
+    "name": "VIOLA II",
+    "price": 40
+  },
+  {
+    "id": 4,
+    "name": "VIOLA III",
+    "price": 30
+  }
+]
