@@ -657,33 +657,41 @@ async function downloadExcelWithExcelJS() {
     });
 
     // Stili e bordi su B–F
-    for (let r = 1; r <= rows.length; r++) {
-        for (let c = 2; c <= 6; c++) {
-            const cell = worksheet.getCell(r, c);
-            cell.border = {
-                top:    { style: 'medium', color: { argb: 'FF000000' } },
-                left:   { style: 'medium', color: { argb: 'FF000000' } },
-                bottom: { style: 'medium', color: { argb: 'FF000000' } },
-                right:  { style: 'medium', color: { argb: 'FF000000' } }
-            };
-            const idx = r - 1;
-            if (headerRows.has(idx) || idx === totalRowIdx) {
-                cell.font = { bold: true };
-                cell.alignment = { horizontal: 'center' };
-            } else if (dateRows.has(idx)) {
-                cell.font = { bold: true };
-                cell.alignment = { horizontal: 'left' };
-            }
-        }
-    }
+// Stili e bordi su B–F
+for (let r = 1; r <= rows.length; r++) {
+  for (let c = 2; c <= 6; c++) {
+    const cell = worksheet.getCell(r, c);
+    // bordi
+    cell.border = {
+      top:    { style: 'medium', color: { argb: 'FF000000' } },
+      left:   { style: 'medium', color: { argb: 'FF000000' } },
+      bottom: { style: 'medium', color: { argb: 'FF000000' } },
+      right:  { style: 'medium', color: { argb: 'FF000000' } }
+    };
 
+    // font e allineamento con size 14
+    const idx = r - 1;
+    if (headerRows.has(idx) || idx === totalRowIdx) {
+      cell.font      = { bold: true, size: 14 };
+      cell.alignment = { horizontal: 'center' };
+    } 
+    else if (dateRows.has(idx)) {
+      cell.font      = { bold: true, size: 14 };
+      cell.alignment = { horizontal: 'left' };
+    } 
+    else {
+      cell.font      = { size: 14 };
+      cell.alignment = { horizontal: 'left' };
+    }
+  }
+}
     // Larghezze colonne A–F
-    worksheet.getColumn(1).width = 12;
-    worksheet.getColumn(2).width = 9;
-    worksheet.getColumn(3).width = 15;
-    worksheet.getColumn(4).width = 9;
-    worksheet.getColumn(5).width = 9;
-    worksheet.getColumn(6).width = 10;
+    worksheet.getColumn(1).width = 14;
+    worksheet.getColumn(2).width = 12;
+    worksheet.getColumn(3).width = 18;
+    worksheet.getColumn(4).width = 12;
+    worksheet.getColumn(5).width = 12;
+    worksheet.getColumn(6).width = 16;
 
     // Genera e scarica
     const buffer = await workbook.xlsx.writeBuffer();
