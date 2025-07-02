@@ -964,7 +964,7 @@ function setupPreviewEventListeners() {
   /** Formatta un numero float in stringa con simbolo € e due decimali, usando la virgola. */
   function formatCurrency(value) {
     const num = parseFloat(value);
-    if (isNaN(num)) return '€0,00';
+    if (isNaN(num)) return '€' + (0).toFixed(2).replace('.', ','); // Gestisci NaN
     return '€' + num.toFixed(2).replace('.', ',');
   }
 
@@ -981,14 +981,13 @@ function setupPreviewEventListeners() {
 
     let kg = cleanAndParseFloat(kgCell.textContent);
     let price = cleanAndParseFloat(priceCell.textContent);
-    let amount = cleanAndParseFloat(amountCell.textContent);
 
     if (modifiedType === 'kg' || modifiedType === 'price') {
       // Se KG o Prezzo sono stati modificati, ricalcola l'Importo
-      amount = kg * price;
+      const amount = kg * price;
       amountCell.textContent = formatCurrency(amount);
     }
-    // Se l'Importo è stato modificato, NON ricalcolare KG o Prezzo.
+    // Se l'Importo è stato modificato, non ricalcolare KG o Prezzo.
     // L'utente vuole che l'importo sia esattamente quello inserito.
     // Nessuna azione richiesta qui, l'importo è già stato letto direttamente dalla cella.
   }
@@ -1062,17 +1061,17 @@ async function downloadExcelWithExcelJS() {
 
         // Imposta il formato numerico per KG, PREZZO, IMPORTO per Excel
         worksheet.getRow(currentRowInExcel).getCell(4).numFmt = '#,##0.00';
-        worksheet.getRow(currentRowInExcel).getCell(5).numFmt = '€#,##0.00';
-        worksheet.getRow(currentRowInExcel).getCell(6).numFmt = '€#,##0.00';
+        worksheet.getRow(currentRowInExcel).getCell(5).numFmt = '€#,##0.00'; // Formato valuta
+        worksheet.getRow(currentRowInExcel).getCell(6).numFmt = '€#,##0.00'; // Formato valuta
         currentRowInExcel++;
     } else if (cells.length === 2 && cells[1].classList.contains('empty-amount-cell')) { // Righe vuote per riempimento
         worksheet.getRow(currentRowInExcel).getCell(6).value = parseFloat(cells[1].textContent.replace('€', '').replace(',', '.')) || '';
-        worksheet.getRow(currentRowInExcel).getCell(6).numFmt = '€#,##0.00';
+        worksheet.getRow(currentRowInExcel).getCell(6).numFmt = '€#,##0.00'; // Formato valuta
         currentRowInExcel++;
     } else if (row.querySelector('#totalAmount')) { // Riga del TOTALE
         worksheet.getRow(currentRowInExcel).getCell(5).value = 'TOTALE'; // Scrivi in Colonna E
         worksheet.getRow(currentRowInExcel).getCell(6).value = parseFloat(row.querySelector('#totalAmount').textContent.replace('€', '').replace(',', '.')) || ''; // Totale in Colonna F
-        worksheet.getRow(currentRowInExcel).getCell(6).numFmt = '€#,##0.00';
+        worksheet.getRow(currentRowInExcel).getCell(6).numFmt = '€#,##0.00'; // Formato valuta
         totalRowIdx = currentRowInExcel - 1; // Indice 0-based
         currentRowInExcel++;
     }
@@ -1130,7 +1129,7 @@ async function downloadExcelWithExcelJS() {
 
 
   // Larghezze colonne
-  worksheet.getColumn(1).width = 10; // Colonna A (spazio vuoto)
+  worksheet.getColumn(1).width = 2; // Colonna A (spazio vuoto)
   worksheet.getColumn(2).width = 15; // Colonna B (Colli) - LARGHEZZA AUMENTATA
   worksheet.getColumn(3).width = 28; // Colonna C (Prodotto)
   worksheet.getColumn(4).width = 12; // Colonna D (KG)
