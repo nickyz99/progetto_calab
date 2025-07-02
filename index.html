@@ -270,7 +270,7 @@
       <tr><th>Nome</th><th>Prezzo (€)</th><th>Salva</th></tr>
       <tr>
         <td><input id="edit-name" required></td>
-        <td><input id="edit-price" type="number" step="0.01" required></td>
+        <td><input id="edit-price" type="number" required></td>
         <td><button class="btn success" onclick="saveEditProduct()">Salva</button></td>
       </tr>
     </table>
@@ -283,7 +283,7 @@
     <tr><th>Nome Prodotto</th><th>Prezzo (€)</th><th>Aggiungi</th></tr>
     <tr>
       <td><input id="new-product-name" placeholder="Nome prodotto" required></td>
-      <td><input id="new-product-price" type="number" step="0.01" placeholder="€" required></td>
+      <td><input id="new-product-price" type="number"  placeholder="€" required></td>
       <td><button class="btn" onclick="addProduct()">Aggiungi</button></td>
     </tr>
   </table>
@@ -676,9 +676,9 @@ function buildSingleDateTable() {
   products.forEach((product, index) => {
     const row = tbody.insertRow();
     row.innerHTML = `
-      <td><input name="colli1_${index}" type="number" min="0" value="0" style="width: 80px;"></td>
+      <td><input name="colli1_${index}" type="number" style="width: 80px;"></td>
       <td style="text-align: left;">${product.name}</td>
-      <td><input name="kg1_${index}" type="number" step="0.01" min="0" value="0.00" style="width: 100px;"></td>
+      <td><input name="kg1_${index}" type="number"  style="width: 100px;"></td>
     `;
   });
 }
@@ -727,9 +727,9 @@ function addDateSection(initialCounter = null, initialDate = '') {
   products.forEach((product, index) => {
     tableRows += `
             <tr>
-                <td><input name="dates[${currentSectionId}][colli][${index}]" type="number" min="0" value="0" style="width: 80px;"></td>
+                <td><input name="dates[${currentSectionId}][colli][${index}]" type="number" style="width: 80px;"></td>
                 <td style="text-align: left;">${product.name}</td>
-                <td><input name="dates[${currentSectionId}][kg][${index}]" type="number" step="0.01" min="0" value="0.00" style="width: 100px;"></td>
+                <td><input name="dates[${currentSectionId}][kg][${index}]" type="number"  style="width: 100px;"></td>
             </tr>
         `;
   });
