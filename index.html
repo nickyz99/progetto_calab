@@ -4,40 +4,245 @@
   <meta charset="UTF-8">
   <title>PAGANPESCA SRL | Gestione Vendite</title>
   <style>
-    body { font-family:Arial,sans-serif; margin:2rem; }
-    nav a { margin-right:1rem; text-decoration:none; font-weight:bold; cursor:pointer; }
-    nav a.active { text-decoration:underline; }
-    table { border-collapse:collapse; width:100%; margin-top:1rem; }
-    th, td { border:1px solid #333; padding:0.5rem; text-align:center; }
-    input, select { padding:0.3rem; width:100%; box-sizing:border-box; }
-    .btn { padding:0.5rem 1rem; background:#007acc; color:#fff; border:none; cursor:pointer; }
-    .btn:hover { background:#005fa3; }
-    .btn.danger { background:#dc3545; }
-    .btn.danger:hover { background:#c82333; }
-    .btn.success { background:#28a745; }
-    .btn.success:hover { background:#218838; }
-    .editable-cell { cursor:text; }
-    .date-section { margin-bottom: 1.5rem; padding: 1rem; border: 1px solid #ccc; background-color: #f9f9f9; }
-    .date-section h4 { margin-top: 0; }
-    .form-group { margin-bottom: 1rem; }
-    .form-group label { display: block; margin-bottom: 0.3rem; font-weight: bold; }
-    .fieldset-container { border: 1px solid #ccc; padding: 1.5rem; margin-bottom: 2rem; border-radius: 5px; background-color: #fff; }
-    .fieldset-container legend { font-weight: bold; font-size: 1.2em; padding: 0 0.5rem; color: #007acc; }
-    .btn-group { margin-top: 1.5rem; }
-    .hidden { display: none; }
-    #preview table { border-collapse: collapse; width: 100%; }
-    #preview td, #preview th { border: 2px solid #000; padding: 8px; text-align: center; }
-    #preview .editable-cell { background-color: #f9f9f9; }
-    #preview .editable-cell:focus { background-color: #fff; outline: 2px solid #007acc; }
-    .empty-amount-cell { background-color: #fffacd; cursor: text; }
-    .file-controls { margin: 1rem 0; padding: 1rem; background-color: #f8f9fa; border-radius: 5px; }
-    .file-controls h4 { margin-top: 0; }
-    .status-message { padding: 0.5rem; margin: 0.5rem 0; border-radius: 3px; }
-    .status-success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-    .status-error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    /* Stili Generali */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 2rem;
+      background-color: #f4f7f6;
+      color: #333;
+    }
+
+    /* Navigazione */
+    nav {
+      background-color: #e9ecef;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 2rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    nav a {
+      margin-right: 1.5rem;
+      text-decoration: none;
+      font-weight: bold;
+      color: #007acc;
+      padding: 0.5rem 0.8rem;
+      border-radius: 5px;
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+    nav a:hover {
+      background-color: #007acc;
+      color: #fff;
+    }
+    nav a.active {
+      text-decoration: none;
+      background-color: #005fa3;
+      color: #fff;
+    }
+
+    /* Sezioni Principali */
+    h2 {
+      color: #005fa3;
+      margin-bottom: 1.5rem;
+      border-bottom: 2px solid #007acc;
+      padding-bottom: 0.5rem;
+    }
+
+    /* Tabelle */
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 1rem;
+      background-color: #fff;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    th, td {
+      border: 1px solid #dee2e6;
+      padding: 0.8rem;
+      text-align: center;
+    }
+    th {
+      background-color: #f8f9fa;
+      font-weight: bold;
+      color: #495057;
+    }
+    tr:nth-child(even) {
+      background-color: #f2f2f2;
+    }
+    tr:hover {
+      background-color: #e9ecef;
+    }
+
+    /* Input e Select */
+    input[type="text"],
+    input[type="number"],
+    input[type="date"],
+    select {
+      padding: 0.6rem;
+      width: 100%;
+      box-sizing: border-box;
+      border: 1px solid #ced4da;
+      border-radius: 4px;
+      font-size: 1rem;
+    }
+    input:focus, select:focus {
+      border-color: #007acc;
+      outline: none;
+      box-shadow: 0 0 0 0.2rem rgba(0, 123, 204, 0.25);
+    }
+    input[type="checkbox"] {
+      width: auto;
+      margin-right: 0.5rem;
+    }
+
+    /* Bottoni */
+    .btn {
+      padding: 0.6rem 1.2rem;
+      background: #007acc;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background-color 0.2s ease, transform 0.1s ease;
+      margin-right: 0.5rem;
+    }
+    .btn:hover {
+      background: #005fa3;
+      transform: translateY(-1px);
+    }
+    .btn.danger {
+      background: #dc3545;
+    }
+    .btn.danger:hover {
+      background: #c82333;
+    }
+    .btn.success {
+      background: #28a745;
+    }
+    .btn.success:hover {
+      background: #218838;
+    }
+    .btn-group {
+      margin-top: 1.5rem;
+      display: flex;
+      gap: 10px;
+    }
+
+    /* Utilità */
+    .hidden {
+      display: none !important;
+    }
+    hr {
+      border: 0;
+      border-top: 1px solid #eee;
+      margin: 1.5rem 0;
+    }
+    .status-message {
+      padding: 0.75rem;
+      margin: 1rem 0;
+      border-radius: 5px;
+      font-weight: bold;
+      text-align: center;
+    }
+    .status-success {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    .status-error {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    /* Specifici per Form */
+    .fieldset-container {
+      border: 1px solid #dcdcdc;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      border-radius: 8px;
+      background-color: #fff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .fieldset-container legend {
+      font-weight: bold;
+      font-size: 1.2em;
+      padding: 0 0.5rem;
+      color: #007acc;
+      background-color: #fff;
+      margin-left: 1rem;
+    }
+    .form-group {
+      margin-bottom: 1.2rem;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: bold;
+      color: #555;
+    }
+    .date-section {
+      margin-bottom: 1.5rem;
+      padding: 1rem;
+      border: 1px solid #ccc;
+      background-color: #f9f9f9;
+      border-radius: 5px;
+    }
+    .date-section h4 {
+      margin-top: 0;
+      color: #005fa3;
+      border-bottom: 1px dashed #a7d9f7;
+      padding-bottom: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    /* Controlli File */
+    .file-controls {
+      margin: 1.5rem 0;
+      padding: 1.5rem;
+      background-color: #eef7fc;
+      border-radius: 8px;
+      border: 1px solid #cce5ff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .file-controls h4 {
+      margin: 0 1rem 0 0;
+      color: #007acc;
+    }
+
+    /* Celle Tabella Editabili (Preview) */
+    #preview table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 1.5rem;
+    }
+    #preview td, #preview th {
+      border: 2px solid #000;
+      padding: 10px;
+      text-align: center;
+    }
+    #preview .editable-cell {
+      background-color: #fcfcfc;
+      cursor: text;
+    }
+    #preview .editable-cell:focus {
+      background-color: #fff;
+      outline: 2px solid #007acc;
+      box-shadow: 0 0 0 0.2rem rgba(0, 123, 204, 0.25);
+    }
+    .empty-amount-cell {
+      background-color: #fffacd; /* light yellow for empty amount cells */
+      cursor: text;
+    }
   </style>
-    <link rel="icon" 
-        type="image/png" 
+    <link rel="icon"
+        type="image/png"
         href="images/shrimp.png">
 </head>
 <body>
@@ -49,7 +254,7 @@
 
 <div id="products-section">
   <h2>Gestione Prodotti</h2>
-  
+
   <div class="file-controls">
     <h4>Gestione File Prodotti</h4>
     <button class="btn success" onclick="downloadProductsJSON()">📥 Scarica Prodotti (JSON)</button>
@@ -58,7 +263,7 @@
     <button class="btn danger" onclick="clearAllProducts()">🗑️ Cancella Tutti</button>
     <div id="status-message"></div>
   </div>
-  
+
   <div id="edit-product-form" class="hidden">
     <h3>Modifica Prodotto</h3>
     <table>
@@ -66,13 +271,14 @@
       <tr>
         <td><input id="edit-name" required></td>
         <td><input id="edit-price" type="number" step="0.01" required></td>
-        <td><button class="btn" onclick="saveEditProduct()">Salva</button></td>
+        <td><button class="btn success" onclick="saveEditProduct()">Salva</button></td>
       </tr>
     </table>
-    <button class="btn" onclick="cancelEdit()">Annulla</button>
+    <button class="btn" onclick="cancelEdit()" style="margin-top: 1rem;">Annulla</button>
     <hr>
   </div>
 
+  <h3>Aggiungi Nuovo Prodotto</h3>
   <table>
     <tr><th>Nome Prodotto</th><th>Prezzo (€)</th><th>Aggiungi</th></tr>
     <tr>
@@ -82,31 +288,36 @@
     </tr>
   </table>
 
+  <h3>Elenco Prodotti</h3>
   <table id="products-table">
-    <tr><th>ID</th><th>Nome</th><th>Prezzo (€)</th><th>Modifica</th><th>Elimina</th></tr>
+    <thead>
+      <tr><th>ID</th><th>Nome</th><th>Prezzo (€)</th><th>Modifica</th><th>Elimina</th></tr>
+    </thead>
+    <tbody>
+      </tbody>
   </table>
 </div>
 
 <div id="template-section" class="hidden">
-  <h2>Genera Template</h2>
-  
+  <h2>Genera Template di Vendita</h2>
+
   <div id="template-form">
     <div class="fieldset-container">
         <legend>Dati Cliente e Data</legend>
         <div class="form-group">
-            <label for="cliente">Cliente:</label>
-            <input id="cliente" required>
+            <label for="cliente">Nome Cliente:</label>
+            <input id="cliente" required placeholder="Es. Mario Rossi S.r.l.">
         </div>
 
         <div id="date_section_0" class="form-group">
-            <label for="date1">Data:</label>
+            <label for="date1">Data di Vendita:</label>
             <input type="date" id="date1" required>
             <table id="single-date-table">
                 <thead>
                     <tr><th>Colli</th><th>Prodotto</th><th>KG</th></tr>
                 </thead>
                 <tbody>
-                </tbody>
+                    </tbody>
             </table>
         </div>
 
@@ -114,24 +325,26 @@
             <label><input type="checkbox" id="multi_date"> Abilita date multiple</label>
         </div>
 
-        <div id="multi_date_section" style="display:none;" class="fieldset-container">
+        <div id="multi_date_section" class="fieldset-container" style="display:none;">
             <legend>Date Aggiuntive</legend>
             <div id="date_sections_container">
-            </div>
-            <button type="button" id="add_date_btn" class="btn" style="margin-top: 1rem;">Aggiungi Data</button>
+                </div>
+            <button type="button" id="add_date_btn" class="btn" style="margin-top: 1rem;">➕ Aggiungi Data</button>
         </div>
     </div>
 
     <div class="btn-group">
-        <button class="btn" onclick="generatePreview()">Genera & Preview</button>
+        <button class="btn success" onclick="generatePreview()">Genera & Anteprima</button>
     </div>
   </div>
 
   <div id="preview-section" class="hidden">
-    <h3>Preview (valori calcolati)</h3>
+    <h3>Anteprima Nota di Vendita (valori calcolati)</h3>
     <div id="preview"></div>
-    <p><button onclick="downloadExcelWithExcelJS()">Download Excel</button></p>
-    <button class="btn" onclick="backToForm()">Torna al Form</button>
+    <div class="btn-group" style="margin-top: 2rem;">
+        <button class="btn success" onclick="downloadExcelWithExcelJS()">⬇️ Scarica Excel</button>
+        <button class="btn" onclick="backToForm()">⬅️ Torna al Form</button>
+    </div>
   </div>
 </div>
 
@@ -139,230 +352,393 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
 
 <script>
-// Persistenza in localStorage
+// ====================================================================================================
+// Variabili Globali
+// ====================================================================================================
+let products = [];
+let currentEditId = null;
+let dateCounter = 0; // Contatore per le sezioni data multiple
+let previewData = []; // Dati della preview per la generazione Excel (non strettamente usati, ma mantenuti)
+
+// ====================================================================================================
+// Inizializzazione e Caricamento Iniziale
+// ====================================================================================================
+document.addEventListener('DOMContentLoaded', function() {
+  loadProductsFromStorage(); // Carica prodotti dal localStorage
+  loadProducts();            // Renderizza i prodotti nella tabella
+  setupEventListeners();     // Imposta i listener per navigazione e form
+  // Imposta la data odierna come default per la prima data
+  document.getElementById('date1').value = new Date().toISOString().slice(0, 10);
+});
+
+// ====================================================================================================
+// Gestione Visualizzazione Sezioni (Prodotti / Template)
+// ====================================================================================================
+function showSection(section) {
+  // Rimuovi classe 'active' da tutti i link di navigazione
+  document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+  // Nascondi tutte le sezioni principali
+  document.querySelectorAll('[id$="-section"]').forEach(s => s.classList.add('hidden'));
+
+  // Mostra la sezione richiesta e imposta il link come attivo
+  if (section === 'products') {
+    document.getElementById('nav-products').classList.add('active');
+    document.getElementById('products-section').classList.remove('hidden');
+    loadProducts(); // Ricarica la tabella prodotti per aggiornamenti
+  } else {
+    document.getElementById('nav-template').classList.add('active');
+    document.getElementById('template-section').classList.remove('hidden');
+    buildSingleDateTable(); // Costruisci la tabella per la singola data
+  }
+}
+
+// ====================================================================================================
+// Funzioni di Utilità e Messaggi di Stato
+// ====================================================================================================
+/**
+ * Mostra un messaggio di stato all'utente.
+ * @param {string} message - Il testo del messaggio.
+ * @param {boolean} isError - Se true, il messaggio è di errore (rosso), altrimenti di successo (verde).
+ */
+function showStatusMessage(message, isError = false) {
+  const statusDiv = document.getElementById('status-message');
+  statusDiv.innerHTML = `<div class="status-message ${isError ? 'status-error' : 'status-success'}">${message}</div>`;
+  // Nasconde il messaggio dopo 3 secondi
+  setTimeout(() => { statusDiv.innerHTML = ''; }, 3000);
+}
+
+/**
+ * Formatta una stringa data nel formato locale italiano (es. GG/MM/AAAA).
+ * @param {string} dateStr - La stringa della data (es. 'YYYY-MM-DD').
+ * @returns {string} La data formattata.
+ */
+function formatDate(dateStr) {
+  const date = new Date(dateStr + 'T00:00:00'); // Aggiungi T00:00:00 per evitare problemi di fuso orario
+  return date.toLocaleDateString('it-IT');
+}
+
+// ====================================================================================================
+// Gestione Persistenza Prodotti (localStorage e File JSON)
+// ====================================================================================================
+/** Salva l'array 'products' nel localStorage. */
 function saveProductsToStorage() {
   localStorage.setItem('products', JSON.stringify(products));
 }
 
+/** Carica l'array 'products' dal localStorage. */
 function loadProductsFromStorage() {
   const stored = localStorage.getItem('products');
   if (stored) {
     try {
       products = JSON.parse(stored);
+      // Assicurati che ogni prodotto abbia un ID valido e unico dopo il caricamento
+      // Questo può essere utile se i dati provengono da una fonte esterna senza ID.
+      products = products.map((p, index) => ({ id: p.id || (index + 1), name: p.name, price: p.price }));
+      // Riordina gli ID per coerenza
+      products.sort((a, b) => a.id - b.id);
     } catch (e) {
-      console.error('Errore parsing localStorage products:', e);
-      products = [];
+      console.error('Errore durante il parsing dei prodotti dal localStorage:', e);
+      products = []; // Resetta in caso di errore di parsing
+      showStatusMessage('Errore nel caricamento prodotti da memoria locale, dati resettati.', true);
     }
   }
 }
 
-// Global variables
-let products = [];
-let currentEditId = null;
-let dateCounter = 0;
-let previewData = [];
-
-// Initialize
-document.addEventListener('DOMContentLoaded', function() {
-    loadProductsFromStorage();
-    loadProducts();
-    setupEventListeners();
-    document.getElementById('date1').value = new Date().toISOString().slice(0,10);
-});
-
-// Funzioni per gestione JSON prodotti
-function showStatusMessage(message, isError = false) {
-    const statusDiv = document.getElementById('status-message');
-    statusDiv.innerHTML = `<div class="status-message ${isError ? 'status-error' : 'status-success'}">${message}</div>`;
-    setTimeout(() => { statusDiv.innerHTML = ''; }, 3000);
-}
-
+/** Scarica i prodotti correnti come file JSON. */
 function downloadProductsJSON() {
-    if (products.length === 0) {
-        showStatusMessage('Nessun prodotto da salvare!', true);
-        return;
-    }
-    const dataStr = JSON.stringify(products, null, 2);
-    const blob = new Blob([dataStr], {type: 'application/json'});
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url; link.download = 'prodotti.json';
-    document.body.appendChild(link); link.click(); document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    showStatusMessage(`File prodotti.json scaricato con ${products.length} prodotti!`);
+  if (products.length === 0) {
+    showStatusMessage('Nessun prodotto da salvare!', true);
+    return;
+  }
+  const dataStr = JSON.stringify(products, null, 2); // Formatta JSON leggibile
+  const blob = new Blob([dataStr], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'prodotti.json'; // Nome del file
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url); // Rilascia l'URL oggetto
+  showStatusMessage(`File prodotti.json scaricato con ${products.length} prodotti!`);
 }
 
+/**
+ * Carica i prodotti da un file JSON selezionato dall'utente.
+ * @param {Event} event - L'evento di cambio file.
+ */
 function loadProductsFromFile(event) {
-    const file = event.target.files[0]; if (!file) return;
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        try {
-            const loaded = JSON.parse(e.target.result);
-            if (!Array.isArray(loaded)) throw new Error('Array atteso');
-            loaded.forEach(p => { if (!p.id||!p.name||typeof p.price!=='number') throw new Error(); });
-            products = loaded;
-            saveProductsToStorage();
-            loadProducts();
-            showStatusMessage(`Caricati ${products.length} prodotti dal file JSON!`);
-        } catch (err) {
-            showStatusMessage(`Errore: ${err.message}`, true);
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const loadedProducts = JSON.parse(e.target.result);
+      if (!Array.isArray(loadedProducts)) {
+        throw new Error('Il file JSON non contiene un array di prodotti.');
+      }
+      // Validazione base dei prodotti caricati
+      loadedProducts.forEach(p => {
+        if (typeof p.name !== 'string' || typeof p.price !== 'number' || p.price < 0) {
+          throw new Error('Formato prodotto non valido nel file JSON.');
         }
-    };
-    reader.readAsText(file);
-    event.target.value = '';
+      });
+      // Assegna ID unici se mancanti o duplici
+      const existingIds = new Set(products.map(p => p.id));
+      let nextId = Math.max(0, ...products.map(p => p.id)) + 1;
+      products = loadedProducts.map(p => {
+          let idToUse = p.id;
+          while (idToUse === undefined || existingIds.has(idToUse)) {
+              idToUse = nextId++;
+          }
+          existingIds.add(idToUse);
+          return { id: idToUse, name: p.name, price: p.price };
+      });
+
+      saveProductsToStorage();
+      loadProducts(); // Ricarica la tabella per visualizzare i nuovi prodotti
+      showStatusMessage(`Caricati ${products.length} prodotti dal file JSON!`);
+    } catch (err) {
+      showStatusMessage(`Errore nel caricamento del file: ${err.message}`, true);
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = ''; // Resetta l'input file per permettere di caricare lo stesso file più volte
 }
 
+/** Cancella tutti i prodotti dal localStorage e dalla tabella. */
 function clearAllProducts() {
-    if (!products.length) { showStatusMessage('Nessun prodotto da cancellare!', true); return; }
-    if (confirm(`Cancelli tutti i ${products.length} prodotti?`)) {
-        products = [];
-        saveProductsToStorage();
-        loadProducts();
-        showStatusMessage('Tutti i prodotti sono stati cancellati!');
-    }
+  if (!products.length) {
+    showStatusMessage('Nessun prodotto da cancellare!', true);
+    return;
+  }
+  if (confirm(`Sei sicuro di voler cancellare tutti i ${products.length} prodotti? Questa azione è irreversibile.`)) {
+    products = [];
+    saveProductsToStorage();
+    loadProducts(); // Aggiorna la visualizzazione
+    showStatusMessage('Tutti i prodotti sono stati cancellati!');
+  }
 }
 
+// ====================================================================================================
+// Gestione Prodotti (Aggiunta, Modifica, Eliminazione)
+// ====================================================================================================
+/** Imposta i listener per la navigazione e i toggle. */
 function setupEventListeners() {
-    document.getElementById('nav-products').addEventListener('click', () => showSection('products'));
-    document.getElementById('nav-template').addEventListener('click', () => showSection('template'));
-    document.getElementById('multi_date').addEventListener('change', toggleMultiDateSection);
-    document.getElementById('add_date_btn').addEventListener('click', () => addDateSection());
+  document.getElementById('nav-products').addEventListener('click', () => showSection('products'));
+  document.getElementById('nav-template').addEventListener('click', () => showSection('template'));
+  document.getElementById('multi_date').addEventListener('change', toggleMultiDateSection);
+  document.getElementById('add_date_btn').addEventListener('click', () => addDateSection());
 }
 
-function showSection(section) {
-    document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
-    document.querySelectorAll('[id$="-section"]').forEach(s => s.classList.add('hidden'));
-    if (section==='products') {
-        document.getElementById('nav-products').classList.add('active');
-        document.getElementById('products-section').classList.remove('hidden');
-        loadProducts();
-    } else {
-        document.getElementById('nav-template').classList.add('active');
-        document.getElementById('template-section').classList.remove('hidden');
-        buildSingleDateTable();
-    }
-}
-
+/** Aggiunge un nuovo prodotto alla lista. */
 function addProduct() {
-    const name = document.getElementById('new-product-name').value.trim();
-    const price = parseFloat(document.getElementById('new-product-price').value);
-    if (!name||isNaN(price)) { showStatusMessage('Inserisci nome e prezzo validi', true); return; }
-    const newId = Math.max(0, ...products.map(p=>p.id)) + 1;
-    products.push({ id:newId, name, price });
-    saveProductsToStorage();
-    loadProducts();
-    showStatusMessage(`Prodotto "${name}" aggiunto!`);
+  const nameInput = document.getElementById('new-product-name');
+  const priceInput = document.getElementById('new-product-price');
+
+  const name = nameInput.value.trim();
+  const price = parseFloat(priceInput.value);
+
+  if (!name || isNaN(price) || price < 0) {
+    showStatusMessage('Per favore, inserisci un nome e un prezzo valido per il prodotto.', true);
+    return;
+  }
+
+  // Genera un ID univoco
+  const newId = products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1;
+  products.push({ id: newId, name, price });
+  saveProductsToStorage();
+  loadProducts(); // Ricarica la tabella
+  showStatusMessage(`Prodotto "${name}" aggiunto con successo!`);
+
+  // Pulisci i campi del form
+  nameInput.value = '';
+  priceInput.value = '';
 }
 
+/** Carica e visualizza i prodotti nella tabella di gestione. */
 function loadProducts() {
-    const tbl = document.getElementById('products-table');
-    const tbody = tbl.querySelector('tbody')||tbl;
-    while (tbody.rows.length>1) tbody.deleteRow(1);
-    if (!products.length) {
-        const r=tbody.insertRow(); r.innerHTML='<td colspan="5">Nessun prodotto presente.<br><small>Aggiungi o carica JSON.</small></td>';
-        return;
-    }
-    products.forEach(p=>{
-        const r=tbody.insertRow();
-        r.innerHTML=`<td>${p.id}</td><td>${p.name}</td><td>${p.price.toFixed(2).replace('.',',')}</td>
-            <td><button class="btn" onclick="editProduct(${p.id})">✏️</button></td>
-            <td><button class="btn danger" onclick="deleteProduct(${p.id})">🗑️</button></td>`;
-    });
+  let tableBody = document.querySelector('#products-table tbody');
+  // Pulisci le righe esistenti, mantenendo l'header se presente (per future modifiche)
+  if (tableBody) { // Assicurati che tbody esista
+    tableBody.innerHTML = ''; // Rimuove tutte le righe dal tbody
+  } else { // Se tbody non c'è, ripristina la tabella e crea tbody
+    const table = document.getElementById('products-table');
+    table.innerHTML = `
+      <thead>
+        <tr><th>ID</th><th>Nome</th><th>Prezzo (€)</th><th>Modifica</th><th>Elimina</th></tr>
+      </thead>
+      <tbody></tbody>
+    `;
+    tableBody = document.querySelector('#products-table tbody');
+  }
+
+
+  if (products.length === 0) {
+    const row = tableBody.insertRow();
+    row.innerHTML = `<td colspan="5" style="text-align:center; color:#6c757d;">Nessun prodotto presente.<br><small>Aggiungi un nuovo prodotto o carica un file JSON.</small></td>`;
+    return;
+  }
+
+  products.forEach(product => {
+    const row = tableBody.insertRow();
+    row.innerHTML = `
+      <td>${product.id}</td>
+      <td>${product.name}</td>
+      <td>€${product.price.toFixed(2).replace('.', ',')}</td>
+      <td><button class="btn" onclick="editProduct(${product.id})">✏️ Modifica</button></td>
+      <td><button class="btn danger" onclick="deleteProduct(${product.id})">🗑️ Elimina</button></td>
+    `;
+  });
 }
 
+/**
+ * Prepara il form di modifica per un prodotto specifico.
+ * @param {number} id - L'ID del prodotto da modificare.
+ */
 function editProduct(id) {
-    const prod = products.find(p=>p.id===id); if(!prod) return;
-    currentEditId=id;
-    document.getElementById('edit-name').value=prod.name;
-    document.getElementById('edit-price').value=prod.price;
-    document.getElementById('edit-product-form').classList.remove('hidden');
+  const productToEdit = products.find(p => p.id === id);
+  if (!productToEdit) {
+    showStatusMessage('Prodotto non trovato per la modifica.', true);
+    return;
+  }
+  currentEditId = id;
+  document.getElementById('edit-name').value = productToEdit.name;
+  document.getElementById('edit-price').value = productToEdit.price;
+  document.getElementById('edit-product-form').classList.remove('hidden');
 }
 
+/** Salva le modifiche apportate a un prodotto. */
 function saveEditProduct() {
-    const name=document.getElementById('edit-name').value.trim();
-    const price=parseFloat(document.getElementById('edit-price').value);
-    if(!name||isNaN(price)) { showStatusMessage('Inserisci nome e prezzo validi',true); return; }
-    const idx=products.findIndex(p=>p.id===currentEditId);
-    if(idx!==-1){ products[idx].name=name; products[idx].price=price; }
+  const nameInput = document.getElementById('edit-name');
+  const priceInput = document.getElementById('edit-price');
+
+  const name = nameInput.value.trim();
+  const price = parseFloat(priceInput.value);
+
+  if (!name || isNaN(price) || price < 0) {
+    showStatusMessage('Inserisci un nome e un prezzo validi per il prodotto.', true);
+    return;
+  }
+
+  const productIndex = products.findIndex(p => p.id === currentEditId);
+  if (productIndex !== -1) {
+    products[productIndex].name = name;
+    products[productIndex].price = price;
     saveProductsToStorage();
-    cancelEdit(); loadProducts(); showStatusMessage('Prodotto modificato con successo!');
+    cancelEdit(); // Nasconde il form di modifica
+    loadProducts(); // Aggiorna la tabella
+    showStatusMessage(`Prodotto "${name}" modificato con successo!`);
+  } else {
+    showStatusMessage('Errore: Prodotto da modificare non trovato.', true);
+  }
 }
 
-function cancelEdit() { currentEditId=null; document.getElementById('edit-product-form').classList.add('hidden'); }
+/** Cancella il form di modifica e lo nasconde. */
+function cancelEdit() {
+  currentEditId = null;
+  document.getElementById('edit-product-form').classList.add('hidden');
+  document.getElementById('edit-name').value = '';
+  document.getElementById('edit-price').value = '';
+}
 
+/**
+ * Elimina un prodotto dalla lista.
+ * @param {number} id - L'ID del prodotto da eliminare.
+ */
 function deleteProduct(id) {
-    const prod=products.find(p=>p.id===id); if(!prod)return;
-    if(confirm(`Elimina "${prod.name}"?`)){ products=products.filter(p=>p.id!==id); saveProductsToStorage(); loadProducts(); showStatusMessage(`Prodotto "${prod.name}" eliminato!`); }
+  const productToDelete = products.find(p => p.id === id);
+  if (!productToDelete) return; // Prodotto non trovato
+
+  if (confirm(`Sei sicuro di voler eliminare il prodotto "${productToDelete.name}"?`)) {
+    products = products.filter(p => p.id !== id);
+    saveProductsToStorage();
+    loadProducts(); // Aggiorna la tabella
+    showStatusMessage(`Prodotto "${productToDelete.name}" eliminato con successo!`);
+  }
 }
+
+// ====================================================================================================
+// Generazione Template (Sezione "Genera Template")
+// ====================================================================================================
+/** Costruisce la tabella per la selezione della singola data. */
 function buildSingleDateTable() {
-    const tbody = document.querySelector('#single-date-table tbody');
-    tbody.innerHTML = '';
-    
-    if (products.length === 0) {
-        const row = tbody.insertRow();
-        row.innerHTML = '<td colspan="3">Nessun prodotto disponibile. Vai alla sezione Prodotti per aggiungerne.</td>';
-        return;
-    }
-    
-    products.forEach((product, index) => {
-        const row = tbody.insertRow();
-        row.innerHTML = `
-            <td><input name="colli1_${index}" type="number" min="" value=""></td>
-            <td>${product.name}</td>
-            <td><input name="kg1_${index}" type="number"  min="" value=""></td>
-        `;
-    });
+  const tbody = document.querySelector('#single-date-table tbody');
+  tbody.innerHTML = ''; // Pulisce le righe esistenti
+
+  if (products.length === 0) {
+    const row = tbody.insertRow();
+    row.innerHTML = '<td colspan="3" style="text-align:center; color:#dc3545; font-weight:bold;">Nessun prodotto disponibile. Vai alla sezione "Prodotti" per aggiungerne.</td>';
+    return;
+  }
+
+  products.forEach((product, index) => {
+    const row = tbody.insertRow();
+    row.innerHTML = `
+      <td><input name="colli1_${index}" type="number" min="0" value="0" style="width: 80px;"></td>
+      <td style="text-align: left;">${product.name}</td>
+      <td><input name="kg1_${index}" type="number" step="0.01" min="0" value="0.00" style="width: 100px;"></td>
+    `;
+  });
 }
 
+/** Mostra/nasconde la sezione per le date multiple. */
 function toggleMultiDateSection() {
-    const checkbox = document.getElementById('multi_date');
-    const multiSection = document.getElementById('multi_date_section');
-    const singleSection = document.getElementById('date_section_0');
-    const container = document.getElementById('date_sections_container');
-    
-    if (checkbox.checked) {
-        multiSection.style.display = 'block';
-        singleSection.style.display = 'none';
-        if (container.children.length === 0) {
-            addDateSection(0, new Date().toISOString().slice(0,10));
-        }
-    } else {
-        multiSection.style.display = 'none';
-        singleSection.style.display = 'block';
-        container.innerHTML = '';
-        dateCounter = 0;
+  const checkbox = document.getElementById('multi_date');
+  const multiSection = document.getElementById('multi_date_section');
+  const singleSection = document.getElementById('date_section_0');
+  const container = document.getElementById('date_sections_container');
+
+  if (checkbox.checked) {
+    multiSection.style.display = 'block';
+    singleSection.style.display = 'none';
+    // Se non ci sono sezioni data, aggiungine una di default
+    if (container.children.length === 0) {
+      addDateSection(0, new Date().toISOString().slice(0, 10)); // Aggiunge la prima sezione data
     }
+  } else {
+    multiSection.style.display = 'none';
+    singleSection.style.display = 'block';
+    container.innerHTML = ''; // Pulisce tutte le sezioni data multiple
+    dateCounter = 0; // Resetta il contatore
+  }
 }
 
+/**
+ * Aggiunge una nuova sezione per la selezione della data e l'inserimento dei prodotti.
+ * @param {number|null} initialCounter - Contatore iniziale per la sezione (utile per la prima sezione).
+ * @param {string} initialDate - Data iniziale predefinita.
+ */
 function addDateSection(initialCounter = null, initialDate = '') {
-    if (products.length === 0) {
-        showStatusMessage('Aggiungi prima alcuni prodotti nella sezione Prodotti!', true);
-        return;
-    }
-    
-    const currentCounter = initialCounter !== null ? initialCounter : ++dateCounter;
-    const container = document.getElementById('date_sections_container');
-    
-    const newSection = document.createElement('div');
-    newSection.classList.add('date-section');
-    newSection.setAttribute('data-date-index', currentCounter);
-    
-    let tableRows = '';
-    products.forEach((product, index) => {
-        tableRows += `
+  if (products.length === 0) {
+    showStatusMessage('Aggiungi prima alcuni prodotti nella sezione "Prodotti" per poter generare un template!', true);
+    return;
+  }
+
+  const currentSectionId = initialCounter !== null ? initialCounter : ++dateCounter;
+  const container = document.getElementById('date_sections_container');
+
+  const newSection = document.createElement('div');
+  newSection.classList.add('date-section');
+  newSection.setAttribute('data-date-index', currentSectionId);
+
+  let tableRows = '';
+  products.forEach((product, index) => {
+    tableRows += `
             <tr>
-                <td><input name="dates[${currentCounter}][colli][${index}]" type="number" min="0" value="0"></td>
-                <td>${product.name}</td>
-                <td><input name="dates[${currentCounter}][kg][${index}]" type="number" step="0.01" min="0" value="0"></td>
+                <td><input name="dates[${currentSectionId}][colli][${index}]" type="number" min="0" value="0" style="width: 80px;"></td>
+                <td style="text-align: left;">${product.name}</td>
+                <td><input name="dates[${currentSectionId}][kg][${index}]" type="number" step="0.01" min="0" value="0.00" style="width: 100px;"></td>
             </tr>
         `;
-    });
-    
-    newSection.innerHTML = `
-        <h4>Data ${currentCounter + 1}</h4>
+  });
+
+  newSection.innerHTML = `
+        <h4>Data Consegna ${currentSectionId + 1}</h4>
         <div class="form-group">
           <label>Data:</label>
-          <input type="date" name="dates[${currentCounter}][date]" value="${initialDate || new Date().toISOString().slice(0,10)}" required>
+          <input type="date" name="dates[${currentSectionId}][date]" value="${initialDate || new Date().toISOString().slice(0, 10)}" required>
         </div>
         <table>
             <thead>
@@ -372,339 +748,407 @@ function addDateSection(initialCounter = null, initialDate = '') {
                 ${tableRows}
             </tbody>
         </table>
-        <button type="button" class="btn danger remove-date-btn" style="margin-top: 10px;">Rimuovi Data</button>
+        <button type="button" class="btn danger remove-date-btn" style="margin-top: 10px;">🗑️ Rimuovi Data</button>
     `;
-    
-    container.appendChild(newSection);
-    
-    newSection.querySelector('.remove-date-btn').addEventListener('click', function() {
-        newSection.remove();
-        if (document.getElementById('multi_date').checked && container.children.length === 0) {
-            addDateSection(0, new Date().toISOString().slice(0,10));
-        }
-    });
+
+  container.appendChild(newSection);
+
+  // Aggiungi listener per il bottone "Rimuovi Data"
+  newSection.querySelector('.remove-date-btn').addEventListener('click', function() {
+    newSection.remove();
+    // Se tutte le sezioni multiple vengono rimosse e la modalità multi-data è attiva,
+    // riaggiungi una sezione vuota per mantenere l'interfaccia usabile.
+    if (document.getElementById('multi_date').checked && container.children.length === 0) {
+      addDateSection(0, new Date().toISOString().slice(0, 10));
+    }
+  });
 }
 
+/** Raccoglie i dati dal form e genera l'anteprima della nota di vendita. */
 function generatePreview() {
-    const cliente = document.getElementById('cliente').value.trim();
-    if (!cliente) {
-        showStatusMessage('Inserisci il nome del cliente', true);
-        return;
-    }
-    
-    if (products.length === 0) {
-        showStatusMessage('Nessun prodotto disponibile per generare il template!', true);
-        return;
-    }
-    
-    const allEntries = [];
-    const multiDate = document.getElementById('multi_date').checked;
-    
-    if (multiDate) {
-        const dateSections = document.querySelectorAll('.date-section');
-        dateSections.forEach(section => {
-            const dateInput = section.querySelector('input[type="date"]');
-            const date = dateInput.value;
-            const entries = [];
-            
-            const colliInputs = section.querySelectorAll('input[name*="[colli]"]');
-            const kgInputs = section.querySelectorAll('input[name*="[kg]"]');
-            
-            colliInputs.forEach((colliInput, index) => {
-                const colli = parseInt(colliInput.value) || 0;
-                const kg = parseFloat(kgInputs[index].value) || 0;
-                
-                if (colli > 0 || kg > 0) {
-                    entries.push({
-                        c: colli,
-                        name: products[index].name,
-                        kg: kg,
-                        price: products[index].price
-                    });
-                }
-            });
-            
-            if (entries.length > 0) {
-                allEntries.push({ date: date, entries: entries });
-            }
-        });
-    } else {
-        const date = document.getElementById('date1').value;
-        const entries = [];
-        
-        products.forEach((product, index) => {
-            const colliInput = document.querySelector(`input[name="colli1_${index}"]`);
-            const kgInput = document.querySelector(`input[name="kg1_${index}"]`);
-            
-            const colli = parseInt(colliInput.value) || 0;
-            const kg = parseFloat(kgInput.value) || 0;
-            
-            if (colli > 0 || kg > 0) {
-                entries.push({
-                    c: colli,
-                    name: product.name,
-                    kg: kg,
-                    price: product.price
-                });
-            }
-        });
-        
-        if (entries.length > 0) {
-            allEntries.push({ date: date, entries: entries });
+  const cliente = document.getElementById('cliente').value.trim();
+  if (!cliente) {
+    showStatusMessage('Per favore, inserisci il nome del cliente.', true);
+    return;
+  }
+
+  if (products.length === 0) {
+    showStatusMessage('Nessun prodotto disponibile per generare il template. Aggiungine nella sezione Prodotti!', true);
+    return;
+  }
+
+  const allEntries = [];
+  const multiDate = document.getElementById('multi_date').checked;
+
+  if (multiDate) {
+    const dateSections = document.querySelectorAll('.date-section');
+    dateSections.forEach(section => {
+      const dateInput = section.querySelector('input[type="date"]');
+      const date = dateInput.value;
+      const entries = [];
+
+      const colliInputs = section.querySelectorAll('input[name*="[colli]"]');
+      const kgInputs = section.querySelectorAll('input[name*="[kg]"]');
+
+      colliInputs.forEach((colliInput, index) => {
+        const colli = parseInt(colliInput.value) || 0;
+        const kg = parseFloat(kgInputs[index].value) || 0;
+
+        // Aggiungi solo i prodotti con quantità > 0
+        if (colli > 0 || kg > 0) {
+          entries.push({
+            c: colli,
+            name: products[index].name,
+            kg: kg,
+            price: products[index].price
+          });
         }
+      });
+
+      if (entries.length > 0) {
+        allEntries.push({ date: date, entries: entries });
+      }
+    });
+  } else {
+    const date = document.getElementById('date1').value;
+    const entries = [];
+
+    products.forEach((product, index) => {
+      const colliInput = document.querySelector(`input[name="colli1_${index}"]`);
+      const kgInput = document.querySelector(`input[name="kg1_${index}"]`);
+
+      const colli = parseInt(colliInput.value) || 0;
+      const kg = parseFloat(kgInput.value) || 0;
+
+      if (colli > 0 || kg > 0) {
+        entries.push({
+          c: colli,
+          name: product.name,
+          kg: kg,
+          price: product.price
+        });
+      }
+    });
+
+    if (entries.length > 0) {
+      allEntries.push({ date: date, entries: entries });
     }
-    
-    if (allEntries.length === 0) {
-        showStatusMessage('Inserisci almeno un prodotto con quantità > 0', true);
-        return;
-    }
-    
-    generatePreviewTable(cliente, allEntries);
+  }
+
+  if (allEntries.length === 0) {
+    showStatusMessage('Nessun prodotto con quantità inserita. Inserisci almeno un prodotto con colli o KG maggiori di zero.', true);
+    return;
+  }
+
+  generatePreviewTable(cliente, allEntries);
 }
 
+/**
+ * Genera la tabella di anteprima HTML della nota di vendita.
+ * @param {string} cliente - Nome del cliente.
+ * @param {Array<Object>} allEntries - Dati aggregati di tutte le date e prodotti.
+ */
 function generatePreviewTable(cliente, allEntries) {
-    let html = `
+  let html = `
         <table id="preview-table" style="width:100%; border-collapse:collapse;">
             <tr>
                 <td colspan="5" style="text-align:center; font-weight:bold; font-size:12px; border:2px solid #000; padding:8px;">
-                    NOTA DI VENDITA | ${cliente}
+                    NOTA DI VENDITA | ${cliente.toUpperCase()}
                 </td>
             </tr>
             <tr style="font-weight:bold;">
-                <td style="border:2px solid #000; padding:8px; text-align:center; width:8%;">C</td>
-                <td style="border:2px solid #000; padding:8px; text-align:center; width:35%;">PRODOTTO</td>
+                <td style="border:2px solid #000; padding:8px; text-align:center; width:12%;">C</td> <td style="border:2px solid #000; padding:8px; text-align:center; width:35%;">PRODOTTO</td>
                 <td style="border:2px solid #000; padding:8px; text-align:center; width:12%;">KG</td>
-                <td style="border:2px solid #000; padding:8px; text-align:center; width:20%;">PREZZO</td>
-                <td style="border:2px solid #000; padding:8px; text-align:center; width:25%;">IMPORTO</td>
-            </tr>
+                <td style="border:2px solid #000; padding:8px; text-align:center; width:18%;">PREZZO</td> <td style="border:2px solid #000; padding:8px; text-align:center; width:23%;">IMPORTO</td> </tr>
     `;
-    
-    previewData = [];
-    let totalAmount = 0;
-    
-    allEntries.forEach((dateSection, sectionIndex) => {
-        if (sectionIndex > 0) {
-            html += '<tr><td colspan="5" style="border-top:3px double #000;"></td></tr>';
-        }
-        
-        const displayDate = formatDate(dateSection.date);
-        html += `<tr><td colspan="5" style="border:2px solid #000; padding:8px;">Data: ${displayDate}</td></tr>`;
-        
-        previewData.push({ type: 'date_label', date: dateSection.date });
-        
-        dateSection.entries.forEach(entry => {
-            const amount = entry.kg * entry.price;
-            totalAmount += amount;
-            
-            html += `
+
+  previewData = []; // Reset previewData for Excel export
+  let totalAmount = 0;
+
+  allEntries.forEach((dateSection, sectionIndex) => {
+    // Aggiungi una riga separatore tra sezioni data, eccetto la prima
+    if (sectionIndex > 0) {
+      html += '<tr><td colspan="5" style="border-top:3px double #000;"></td></tr>';
+    }
+
+    const displayDate = formatDate(dateSection.date);
+    html += `<tr><td colspan="5" style="border:2px solid #000; padding:8px; text-align: left;">Data: ${displayDate}</td></tr>`;
+
+    // Aggiungi un marcatore per la riga della data per l'export Excel
+    previewData.push({ type: 'date_label', date: dateSection.date });
+
+    dateSection.entries.forEach(entry => {
+      const amount = entry.kg * entry.price;
+      totalAmount += amount;
+
+      html += `
                 <tr>
                     <td style="border:2px solid #000; padding:8px; text-align:center;" data-col-type="colli">${entry.c}</td>
-                    <td style="border:2px solid #000; padding:8px; text-align:center;" data-col-type="product">${entry.name}</td>
-                    <td style="border:2px solid #000; padding:8px; text-align:center;" class="editable-cell" data-col-type="kg" contenteditable="true">${entry.kg.toFixed(2)}</td>
-                    <td style="border:2px solid #000; padding:8px; text-align:center;" class="editable-cell" data-col-type="price" contenteditable="true">€${entry.price.toFixed(2)}</td>
-                    <td style="border:2px solid #000; padding:8px; text-align:center;" class="editable-cell" data-col-type="amount" contenteditable="true">€${amount.toFixed(2)}</td>
+                    <td style="border:2px solid #000; padding:8px; text-align:left;" data-col-type="product">${entry.name}</td>
+                    <td style="border:2px solid #000; padding:8px; text-align:right;" class="editable-cell" data-col-type="kg" contenteditable="true">${entry.kg.toFixed(2).replace('.', ',')}</td>
+                    <td style="border:2px solid #000; padding:8px; text-align:right;" class="editable-cell" data-col-type="price" contenteditable="true">€${entry.price.toFixed(2).replace('.', ',')}</td>
+                    <td style="border:2px solid #000; padding:8px; text-align:right;" class="editable-cell" data-col-type="amount" contenteditable="true">€${amount.toFixed(2).replace('.', ',')}</td>
                 </tr>
             `;
-            
-            previewData.push({
-                type: 'product_row',
-                colli: entry.c,
-                product_name: entry.name,
-                kg: entry.kg,
-                price: entry.price,
-                amount: amount
-            });
-        });
+
+      // Popola previewData per l'export Excel
+      previewData.push({
+        type: 'product_row',
+        colli: entry.c,
+        product_name: entry.name,
+        kg: entry.kg,
+        price: entry.price,
+        amount: amount
+      });
     });
-    
-    // Fill remaining rows up to 22 data rows
-    const maxDataRows = 22;
-    let currentDataRows = allEntries.reduce((sum, section) => sum + section.entries.length, 0) + allEntries.length; // +sections for date labels
-    
-    for (let i = currentDataRows; i < maxDataRows; i++) {
-        html += `<tr>
+  });
+
+  // Riempie le righe rimanenti fino a un massimo di 22 righe di dati (escluse le intestazioni e il totale)
+  const maxDataRows = 22;
+  // Calcola le righe già occupate dai prodotti e dalle etichette data
+  let currentDataRows = previewData.filter(item => item.type === 'product_row' || item.type === 'date_label').length;
+
+  for (let i = currentDataRows; i < maxDataRows; i++) {
+    html += `<tr>
             <td colspan="4" style="border:2px solid #000; padding:8px;"></td>
-            <td style="border:2px solid #000; padding:8px; text-align:center;" class="empty-amount-cell editable-cell" data-col-type="empty-amount" contenteditable="true">€0,00</td>
+            <td style="border:2px solid #000; padding:8px; text-align:right;" class="empty-amount-cell editable-cell" data-col-type="empty-amount" contenteditable="true">€0,00</td>
         </tr>`;
-    }
-    
-    html += `
+    previewData.push({ type: 'empty_row' }); // Aggiungi riga vuota per coerenza
+  }
+
+
+  html += `
         <tr style="font-weight:bold;">
             <td colspan="4" style="border:2px solid #000; padding:8px; text-align:center;">TOTALE</td>
-            <td id="totalAmount" style="border:2px solid #000; padding:8px; text-align:center;">€${totalAmount.toFixed(2)}</td>
+            <td id="totalAmount" style="border:2px solid #000; padding:8px; text-align:right;">€${totalAmount.toFixed(2).replace('.', ',')}</td>
         </tr>
     </table>`;
-    
-    document.getElementById('preview').innerHTML = html;
-    document.getElementById('template-form').classList.add('hidden');
-    document.getElementById('preview-section').classList.remove('hidden');
-    
-    setupPreviewEventListeners();
+
+  document.getElementById('preview').innerHTML = html;
+  document.getElementById('template-form').classList.add('hidden');
+  document.getElementById('preview-section').classList.remove('hidden');
+
+  setupPreviewEventListeners(); // Imposta i listener per le celle modificabili
 }
 
+/** Imposta i listener per la modifica delle celle nella tabella di anteprima. */
 function setupPreviewEventListeners() {
-    const table = document.getElementById('preview-table');
-    const totalCell = document.getElementById('totalAmount');
-    
-    table.addEventListener('input', function(event) {
-        const target = event.target;
-        if (target.classList.contains('editable-cell') && target.dataset.colType !== 'total') {
-            const row = target.closest('tr');
-            const type = target.dataset.colType;
-            
-            if (type === 'empty-amount') {
-                // Per le celle vuote dell'importo, aggiorna solo il totale
-                recalcTotal();
-            } else {
-                // Per le altre celle, ricalcola la riga e poi il totale
-                recalcRow(row, type);
-                recalcTotal();
-            }
-        }
+  const table = document.getElementById('preview-table');
+  const totalCell = document.getElementById('totalAmount');
+
+  table.addEventListener('input', function(event) {
+    const target = event.target;
+    // Assicurati che l'elemento modificato sia una cella editabile e non la cella del totale
+    if (target.classList.contains('editable-cell') && target.dataset.colType !== 'total') {
+      const row = target.closest('tr');
+      const type = target.dataset.colType;
+
+      if (type === 'empty-amount') {
+        // Per le celle vuote dell'importo, ricalcola solo il totale
+        recalcTotal();
+      } else {
+        // Per le altre celle (KG, PREZZO, IMPORTO), ricalcola la riga e poi il totale
+        recalcRow(row, type);
+        recalcTotal();
+      }
+    }
+  });
+
+  /** Pulisce e converte un valore stringa in float. Gestisce virgole e simboli €. */
+  function cleanAndParseFloat(value) {
+    if (typeof value !== 'string') return 0;
+    // Rimuove il simbolo di euro e sostituisce la virgola con il punto
+    return parseFloat(value.replace('€', '').replace(/\./g, '').replace(',', '.')) || 0;
+  }
+
+  /** Formatta un numero float in stringa con simbolo € e due decimali, usando la virgola. */
+  function formatCurrency(value) {
+    const num = parseFloat(value);
+    if (isNaN(num)) return '€0,00';
+    return '€' + num.toFixed(2).replace('.', ',');
+  }
+
+  /**
+   * Ricalcola i valori di una riga in base al tipo di cella modificata.
+   * Se si modifica l'Importo, KG e Prezzo rimangono invariati.
+   */
+  function recalcRow(row, modifiedType) {
+    const kgCell = row.querySelector('[data-col-type="kg"]');
+    const priceCell = row.querySelector('[data-col-type="price"]');
+    const amountCell = row.querySelector('[data-col-type="amount"]');
+
+    if (!kgCell || !priceCell || !amountCell) return; // Non è una riga di prodotto valida
+
+    let kg = cleanAndParseFloat(kgCell.textContent);
+    let price = cleanAndParseFloat(priceCell.textContent);
+    let amount = cleanAndParseFloat(amountCell.textContent);
+
+    if (modifiedType === 'kg' || modifiedType === 'price') {
+      // Se KG o Prezzo sono stati modificati, ricalcola l'Importo
+      amount = kg * price;
+      amountCell.textContent = formatCurrency(amount);
+    }
+    // Se l'Importo è stato modificato, NON ricalcolare KG o Prezzo.
+    // L'utente vuole che l'importo sia esattamente quello inserito.
+    // Nessuna azione richiesta qui, l'importo è già stato letto direttamente dalla cella.
+  }
+
+  /** Ricalcola il totale generale della nota di vendita. */
+  function recalcTotal() {
+    let sum = 0;
+    // Somma tutte le celle dell'importo (sia quelle dei prodotti che le celle vuote)
+    table.querySelectorAll('[data-col-type="amount"], [data-col-type="empty-amount"]').forEach(cell => {
+      sum += cleanAndParseFloat(cell.textContent);
     });
-    
-    function clean(v) {
-        return parseFloat((v || '').replace('€', '').replace(/[^0-9,.-]/g,'').replace(',','.')) || 0;
-    }
-    
-    function fmt(v) {
-        const num = parseFloat(v);
-        if (isNaN(num)) return '€0,00';
-        return '€' + num.toFixed(2);
-    }
-    
-    function recalcRow(row, modifiedType) {
-        const kgCell = row.querySelector('[data-col-type=kg]');
-        const priceCell = row.querySelector('[data-col-type=price]');
-        const amountCell = row.querySelector('[data-col-type=amount]');
-        
-        if (!kgCell || !priceCell || !amountCell) return;
-        
-        let kg = clean(kgCell.textContent);
-        let price = clean(priceCell.textContent);
-        let amount = clean(amountCell.textContent);
-        
-        if (modifiedType === 'kg' || modifiedType === 'price') {
-            amount = kg * price;
-        }
-        
-        kgCell.textContent = kg.toFixed(2);
-        priceCell.textContent = fmt(price);
-        amountCell.textContent = fmt(amount);
-    }
-    
-    function recalcTotal() {
-        let sum = 0;
-        // Somma tutte le celle dell'importo (sia prodotti che celle vuote)
-        table.querySelectorAll('[data-col-type=amount], [data-col-type=empty-amount]').forEach(cell => {
-            sum += clean(cell.textContent);
-        });
-        totalCell.textContent = fmt(sum);
-    }
-}
-
-function formatDate(dateStr) {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('it-IT');
-}
-
-function backToForm() {
-    document.getElementById('template-form').classList.remove('hidden');
-    document.getElementById('preview-section').classList.add('hidden');
-}
-
-async function downloadExcelWithExcelJS() {
-    const table = document.getElementById('preview-table');
-    const cliente = document.getElementById('cliente').value.trim();
-
-    // Crea un nuovo workbook e worksheet
-    const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('Nota di Vendita');
-    
-    const rows = table.querySelectorAll('tr');
-    const headerRows = new Set();
-    const dateRows   = new Set();
-    let totalRowIdx  = -1;
-
-    // Popola il foglio (colonne B–F anziché B–G)
-    rows.forEach((row, i) => {
-        const cells = row.querySelectorAll('td, th');
-        const excelRow = worksheet.getRow(i + 1);
-
-        if (cells.length === 1 && cells[0].colSpan === 5) {
-            excelRow.getCell(2).value = cells[0].textContent.trim();
-            worksheet.mergeCells(i+1, 2, i+1, 6);  // da B a F
-            dateRows.add(i);
-        }
-        else if (cells.length === 5 && cells[4].textContent.trim() === 'IMPORTO') {
-            ['C','PRODOTTO','KG','PREZZO','IMPORTO']
-              .forEach((v,j) => excelRow.getCell(2 + j).value = v);
-            headerRows.add(i);
-        }
-        else if (cells.length === 5) {
-            const [colli, name, kg, pr, am] = Array.from(cells).map(td=>td.textContent.trim());
-            excelRow.getCell(2).value = colli;
-            excelRow.getCell(3).value = name;
-            excelRow.getCell(4).value = parseFloat(kg).toFixed(2).replace('.', ',');
-            excelRow.getCell(5).value = pr;
-            excelRow.getCell(6).value = am;
-        }
-        else if (cells.length === 2 && cells[1].classList.contains('empty-amount-cell')) {
-            excelRow.getCell(6).value = cells[1].textContent.trim();
-        }
-        else if (row.querySelector('#totalAmount')) {
-            excelRow.getCell(5).value = 'TOTALE';
-            excelRow.getCell(6).value = row.querySelector('#totalAmount').textContent.trim();
-            totalRowIdx = i;
-        }
-    });
-
-    // Stili e bordi su B–F
-// Stili e bordi su B–F
-for (let r = 1; r <= rows.length; r++) {
-  for (let c = 2; c <= 6; c++) {
-    const cell = worksheet.getCell(r, c);
-    // bordi
-    cell.border = {
-      top:    { style: 'medium', color: { argb: 'FF000000' } },
-      left:   { style: 'medium', color: { argb: 'FF000000' } },
-      bottom: { style: 'medium', color: { argb: 'FF000000' } },
-      right:  { style: 'medium', color: { argb: 'FF000000' } }
-    };
-
-    // font e allineamento con size 14
-    const idx = r - 1;
-    if (headerRows.has(idx) || idx === totalRowIdx) {
-      cell.font      = { bold: true, size: 14 };
-      cell.alignment = { horizontal: 'center' };
-    } 
-    else if (dateRows.has(idx)) {
-      cell.font      = { bold: true, size: 14 };
-      cell.alignment = { horizontal: 'left' };
-    } 
-    else {
-      cell.font      = { size: 14 };
-      cell.alignment = { horizontal: 'left' };
-    }
+    totalCell.textContent = formatCurrency(sum);
   }
 }
-    // Larghezze colonne A–F
-    worksheet.getColumn(1).width = 14;
-    worksheet.getColumn(2).width = 12;
-    worksheet.getColumn(3).width = 18;
-    worksheet.getColumn(4).width = 12;
-    worksheet.getColumn(5).width = 12;
-    worksheet.getColumn(6).width = 16;
 
-    // Genera e scarica
-    const buffer = await workbook.xlsx.writeBuffer();
-    const blob   = new Blob([buffer], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-    const url    = URL.createObjectURL(blob);
-    const a      = document.createElement('a');
-    a.href = url; a.download = `${cliente}.xlsx`; a.click();
-    URL.revokeObjectURL(url);
+/** Torna al form di generazione del template dalla preview. */
+function backToForm() {
+  document.getElementById('template-form').classList.remove('hidden');
+  document.getElementById('preview-section').classList.add('hidden');
 }
 
+// ====================================================================================================
+// Esportazione Excel (tramite ExcelJS)
+// ====================================================================================================
+/**
+ * Scarica la nota di vendita come file Excel (.xlsx) usando ExcelJS.
+ */
+async function downloadExcelWithExcelJS() {
+  const table = document.getElementById('preview-table');
+  const cliente = document.getElementById('cliente').value.trim();
+
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet('Nota di Vendita');
+
+  // Recupera tutte le righe dalla tabella HTML
+  const rows = table.querySelectorAll('tr');
+
+  // Variabili per applicare stili in base al tipo di riga
+  const headerRowsIdx = new Set();
+  const dateRowsIdx   = new Set();
+  let totalRowIdx     = -1;
+  let currentRowInExcel = 1;
+
+  // Prima Passata: Popola i dati e identifica i tipi di riga
+  rows.forEach((row, i) => {
+    const cells = row.querySelectorAll('td, th');
+    // Questa riga nell'HTML corrisponde alla riga `currentRowInExcel` in Excel
+
+    if (cells.length === 1 && cells[0].colSpan === 5) { // Riga "NOTA DI VENDITA | Cliente" o "Data: ..."
+        const cellValue = cells[0].textContent.trim();
+        worksheet.getRow(currentRowInExcel).getCell(2).value = cellValue; // Scrivi nella colonna B
+        worksheet.mergeCells(currentRowInExcel, 2, currentRowInExcel, 6);  // Unisci da B a F
+        dateRowsIdx.add(currentRowInExcel - 1); // Indice 0-based per array styles
+        currentRowInExcel++;
+    } else if (cells.length === 5 && cells[4].textContent.trim().includes('IMPORTO')) { // Riga di intestazione (C, PRODOTTO, KG, PREZZO, IMPORTO)
+        worksheet.getRow(currentRowInExcel).getCell(2).value = cells[0].textContent.trim(); // C
+        worksheet.getRow(currentRowInExcel).getCell(3).value = cells[1].textContent.trim(); // PRODOTTO
+        worksheet.getRow(currentRowInExcel).getCell(4).value = cells[2].textContent.trim(); // KG
+        worksheet.getRow(currentRowInExcel).getCell(5).value = cells[3].textContent.trim(); // PREZZO
+        worksheet.getRow(currentRowInExcel).getCell(6).value = cells[4].textContent.trim(); // IMPORTO
+        headerRowsIdx.add(currentRowInExcel - 1);
+        currentRowInExcel++;
+    } else if (cells.length === 5) { // Righe di prodotto (C, PRODOTTO, KG, PREZZO, IMPORTO calcolato)
+        const [colli, name, kg, price, amount] = Array.from(cells).map(td => td.textContent.trim());
+
+        worksheet.getRow(currentRowInExcel).getCell(2).value = parseInt(colli) || ''; // Colli (Colonna B)
+        worksheet.getRow(currentRowInExcel).getCell(3).value = name;                  // Prodotto (Colonna C)
+        worksheet.getRow(currentRowInExcel).getCell(4).value = parseFloat(kg.replace(',', '.')) || ''; // KG (Colonna D)
+        worksheet.getRow(currentRowInExcel).getCell(5).value = parseFloat(price.replace('€', '').replace(',', '.')) || ''; // Prezzo (Colonna E)
+        worksheet.getRow(currentRowInExcel).getCell(6).value = parseFloat(amount.replace('€', '').replace(',', '.')) || ''; // Importo (Colonna F)
+
+        // Imposta il formato numerico per KG, PREZZO, IMPORTO per Excel
+        worksheet.getRow(currentRowInExcel).getCell(4).numFmt = '#,##0.00';
+        worksheet.getRow(currentRowInExcel).getCell(5).numFmt = '€#,##0.00';
+        worksheet.getRow(currentRowInExcel).getCell(6).numFmt = '€#,##0.00';
+        currentRowInExcel++;
+    } else if (cells.length === 2 && cells[1].classList.contains('empty-amount-cell')) { // Righe vuote per riempimento
+        worksheet.getRow(currentRowInExcel).getCell(6).value = parseFloat(cells[1].textContent.replace('€', '').replace(',', '.')) || '';
+        worksheet.getRow(currentRowInExcel).getCell(6).numFmt = '€#,##0.00';
+        currentRowInExcel++;
+    } else if (row.querySelector('#totalAmount')) { // Riga del TOTALE
+        worksheet.getRow(currentRowInExcel).getCell(5).value = 'TOTALE'; // Scrivi in Colonna E
+        worksheet.getRow(currentRowInExcel).getCell(6).value = parseFloat(row.querySelector('#totalAmount').textContent.replace('€', '').replace(',', '.')) || ''; // Totale in Colonna F
+        worksheet.getRow(currentRowInExcel).getCell(6).numFmt = '€#,##0.00';
+        totalRowIdx = currentRowInExcel - 1; // Indice 0-based
+        currentRowInExcel++;
+    }
+  });
+
+
+  // Seconda Passata: Applicazione stili e bordi
+  for (let r = 1; r <= worksheet.lastRow.number; r++) { // r è 1-based per ExcelJS
+    for (let c = 2; c <= 6; c++) { // Dalla colonna B (2) alla F (6)
+      const cell = worksheet.getCell(r, c);
+
+      // Bordi per tutte le celle nel range
+      cell.border = {
+        top:    { style: 'medium', color: { argb: 'FF000000' } },
+        left:   { style: 'medium', color: { argb: 'FF000000' } },
+        bottom: { style: 'medium', color: { argb: 'FF000000' } },
+        right:  { style: 'medium', color: { argb: 'FF000000' } }
+      };
+
+      // Font e allineamento
+      const htmlRowIndex = r - 1; // 0-based index corresponding to HTML row
+
+      if (r === 1) { // Prima riga (NOTA DI VENDITA | Cliente)
+          cell.font = { bold: true, size: 14 };
+          cell.alignment = { horizontal: 'center', vertical: 'middle' };
+      } else if (headerRowsIdx.has(htmlRowIndex)) { // Righe di intestazione (C, PRODOTTO, KG...)
+          cell.font = { bold: true, size: 14 };
+          cell.alignment = { horizontal: 'center', vertical: 'middle' };
+      } else if (dateRowsIdx.has(htmlRowIndex)) { // Righe con "Data: ..."
+          cell.font = { bold: true, size: 14 };
+          cell.alignment = { horizontal: 'left', vertical: 'middle' };
+      } else if (htmlRowIndex === totalRowIdx) { // Riga TOTALE
+          cell.font = { bold: true, size: 14 };
+          cell.alignment = { horizontal: 'right', vertical: 'middle' };
+          // Allinea 'TOTALE' a destra nella cella D
+          if (c === 5) cell.alignment = { horizontal: 'center', vertical: 'middle' };
+      } else { // Righe di prodotto o vuote
+          cell.font = { size: 14 };
+          if (c === 2 || c === 3) { // Colli e Prodotto
+              cell.alignment = { horizontal: 'left', vertical: 'middle' };
+          } else { // KG, Prezzo, Importo
+              cell.alignment = { horizontal: 'right', vertical: 'middle' };
+          }
+      }
+    }
+
+    // Gestione bordo doppio per la riga superiore delle nuove sezioni data
+    const htmlRowIndex = r - 1;
+    if (dateRowsIdx.has(htmlRowIndex) && htmlRowIndex > 1) { // Se è una riga data e non è la prima riga in assoluto
+        for (let col = 2; col <= 6; col++) {
+            worksheet.getCell(r, col).border.top = { style: 'double', color: { argb: 'FF000000' } };
+        }
+    }
+  }
+
+
+  // Larghezze colonne
+  worksheet.getColumn(1).width = 10; // Colonna A (spazio vuoto)
+  worksheet.getColumn(2).width = 15; // Colonna B (Colli) - LARGHEZZA AUMENTATA
+  worksheet.getColumn(3).width = 28; // Colonna C (Prodotto)
+  worksheet.getColumn(4).width = 12; // Colonna D (KG)
+  worksheet.getColumn(5).width = 14; // Colonna E (Prezzo)
+  worksheet.getColumn(6).width = 16; // Colonna F (Importo)
+
+
+  // Genera il buffer e scarica il file
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${cliente}.xlsx`; // Nome del file Excel
+  a.click();
+  URL.revokeObjectURL(url); // Rilascia l'URL oggetto
+  showStatusMessage(`File Excel "${cliente}.xlsx" generato con successo!`);
+}
 </script>
 
 </body>
